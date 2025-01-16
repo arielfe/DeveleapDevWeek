@@ -3,15 +3,18 @@ from app import db  # Import the database instance
 
 # Define a Provider model
 class Provider(db.Model):
+    __tablename__ = 'Provider'  # Explicitly define the table name
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), unique=True, nullable=False)
 
 class Rate(db.Model):
+    __tablename__ = 'Rates'  # Explicitly define the table name
     product_id = db.Column(db.String(50), primary_key=True)
     rate = db.Column(db.Integer, default=0)
     scope = db.Column(db.Integer, db.ForeignKey('Provider.id'))  # Relates to Provider.id
 
 class Truck(db.Model):
+    __tablename__ = 'Trucks'  # Explicitly define the table name
     id = db.Column(db.String(10), primary_key=True)
     provider_id = db.Column(db.Integer, db.ForeignKey('Provider.id'))  # Relates to Provider.id
 
