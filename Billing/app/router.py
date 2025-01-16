@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify
-from app.controller import create_provider
+from flask import Blueprint, jsonify, request
+from app.controller import db, Provider  # Import models
 
 # Create a blueprint for provider-related routes
 provider_routes = Blueprint("provider_routes", __name__)
