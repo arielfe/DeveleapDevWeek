@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  billing-server:
+    build: .  # Build the image from the Dockerfile in the current directory
+    ports:
+      - "5001:5000"  # Map port 5000 in the container to port 5001 on the host
+    depends_on:
+      - db  # Ensure the database service starts before this service
+    environment:
+      - DB_USER=root
+      - DB_PASSWORD=adminpass
+      - DB_HOST=db  # Reference the database service name
+      - DB_NAME=billdb
+      - PYTHONPATH=.  # Set PYTHONPATH to the project root
+    restart: always  # Automatically restart if the service stops
+    volumes:
+      - .:/app  # Mount the application code for development
+
+  db:
+    image: mysql:5.7  # Use the MySQL 5.7 image
+    restart: always  # Restart the database if it stops
+    environment:
+      MYSQL_ROOT_PASSWORD: adminpass  # Root password for MySQL
+      MYSQL_DATABASE: billdb  # Initial database to create
+    ports:
+      - "3306:3306"  # Expose MySQL's port
+    volumes:
+      - mysql_data:/var/lib/mysql  # Persistent data storage for MySQL
+
+volumes:
+  mysql_data:  # Named volume for persistent MySQL storage
