@@ -1,0 +1,5 @@
+flask==3.0.0  # Flask for web application
+flask_sqlalchemy==3.0.5  # Integration of Flask with SQLAlchemy
+pymysql==1.0.3  # MySQL driver for Python
+sqlalchemy==2.0.5  # SQLAlchemy ORM
+cryptography==41.0.3  # For secure password handling (used by pymysql)
