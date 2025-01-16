@@ -56,5 +56,21 @@ def add_container():
         cursor.close()
         conn.close()
 
+
+# Route to check if Database Server is available 
+@app.route('/health', methods=['GET'])
+def check_mysql():
+    try:
+        # Connecting to Database
+        conn = get_db_connection()
+        if conn.is_connected():
+            conn.close()  # Closing connection
+            return jsonify({"status": "OK", "message": "MySQL server is running"}), 200
+        
+    except Exception as e:
+        return jsonify({"status": "Failure", "message": str(e)}), 500
+
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
