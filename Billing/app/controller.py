@@ -15,22 +15,27 @@ class Truck(db.Model):
     id = db.Column(db.String(10), primary_key=True)
     provider_id = db.Column(db.Integer, db.ForeignKey('Provider.id'))  # Relates to Provider.id
 
-# def create_provider(provider_name):
-#     """
-#     Controller function to create a new provider.
-#     """
-#     try:
-#         # Check if the provider already exists
-#         existing_provider = Provider.query.filter_by(name=provider_name).first()
-#         if existing_provider:
-#             return jsonify({"error": "Provider already exists"}), 400
+def update_provider_controller(provider_id, new_name):
+    """
+    Controller function to update an existing provider's name.
+    """
+    try:
+        # Check if the provider exists
+        provider = Provider.query.get(provider_id)
+        if not provider:
+            return f"Provider with ID {provider_id} not found", 404
         
-#         # Create and save the new provider
-#         new_provider = Provider(name=provider_name)
-#         db.session.add(new_provider)
-#         db.session.commit()
-        
-#         return jsonify({"id": new_provider.id, "name": new_provider.name}), 201
-#     except Exception as e:
-#         db.session.rollback()
-#         return jsonify({"error": f"Failed to create provider: {str(e)}"}), 500
+        # Check if the new name already exists for a different provider
+        existing_provider = Provider.query.filter(Provider.name == new_name, Provider.id != provider_id).first()
+        if existing_provider:
+            return f"Provider name '{new_name}' already exists", 400
+
+        # Update the provider's name
+        provider.name = new_name
+        db.session.commit()
+
+        return f"Provider {provider_id} updated to '{new_name}'", 200
+    except Exception as e:
+        # Roll back in case of any errors
+        db.session.rollback()
+        return f"Failed to update provider: {str(e)}", 500
