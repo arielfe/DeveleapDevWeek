@@ -16,7 +16,7 @@ services:
       - .:/app  # Mount the application code for development
 
   db:
-    image: mysql:5.7  # Use the MySQL 8.0 image
+    image: mysql:5.7  # Use the MySQL 5.7 image
     restart: always  # Restart the database if it stops
     environment:
       MYSQL_ROOT_PASSWORD: adminpass  # Root password for MySQL
