@@ -5,19 +5,19 @@ from app import db  # Import the database instance
 # Define a Provider model
 class Provider(db.Model):
     __tablename__ = 'Provider'  # Explicitly define the table name
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)  # Primary key can't be NULL
+    name = db.Column(db.String(255), unique=True, nullable=False)  # Ensure 'name' is not NULL
 
 class Rate(db.Model):
     __tablename__ = 'Rates'  # Explicitly define the table name
-    product_id = db.Column(db.String(50), primary_key=True)
-    rate = db.Column(db.Integer, default=0)
-    scope = db.Column(db.Integer, db.ForeignKey('Provider.id'))  # Relates to Provider.id
+    product_id = db.Column(db.String(50), primary_key=True, nullable=False)  # Primary key can't be NULL
+    rate = db.Column(db.Integer, default=0, nullable=False)  # Ensure 'rate' is not NULL
+    scope = db.Column(db.Integer, db.ForeignKey('Provider.id'), nullable=False)  # Relates to Provider.id, cannot be NULL
 
 class Truck(db.Model):
     __tablename__ = 'Trucks'  # Explicitly define the table name
-    id = db.Column(db.String(10), primary_key=True)
-    provider_id = db.Column(db.Integer, db.ForeignKey('Provider.id'))  # Relates to Provider.id
+    id = db.Column(db.String(10), primary_key=True, unique=True, nullable=False)  # Primary key can't be NULL
+    provider_id = db.Column(db.Integer, db.ForeignKey('Provider.id'), nullable=False)  # Relates to Provider.id, cannot be NULL
 
 def update_provider_controller(provider_id, new_name):
     """
@@ -63,3 +63,26 @@ def health_check_controller():
     except Exception as e:
         print(f"Error: {str(e)}")
         return {"status": "Failure", "message": "Database unavailable"}, 500
+
+def add_truck(license_id, provider_id):
+    try:
+        # Check if the provider exists
+        provider = db.session.query(Provider).get(provider_id)
+        if not provider:
+            return jsonify({"error": f"Provider with ID {provider_id} not found"}), 404
+        
+        # Check if the truck already exists
+        existing_truck = db.session.query(Truck).filter_by(id=license_id).first()
+        if existing_truck:
+            return jsonify({"error": f"Truck with license ID {license_id} already exists"}), 400
+
+        # Add the new truck
+        new_truck = Truck(id=license_id, provider_id=provider_id)
+        db.session.add(new_truck)
+        db.session.commit()
+
+        return jsonify({"id": new_truck.id, "provider_id": new_truck.provider_id}), 201
+    
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of any errors during the DB operation.  undo any changes made to the database during the current session
+        return jsonify({"error": f"An error occurred while processing the request: {str(e)}"}), 500
