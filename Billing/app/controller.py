@@ -1,4 +1,5 @@
 from flask import jsonify
+from sqlalchemy import create_engine
 from app import db  # Import the database instance
 
 # Define a Provider model
@@ -54,3 +55,11 @@ def add_provider(provider_name):
 
     return jsonify({"id": new_provider.id, "name": new_provider.name}), 201
 
+def health_check_controller():
+    try:
+        # Try querying a known table
+        db.session.query(Provider).first()
+        return {"status": "OK"}, 200
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return {"status": "Failure", "message": "Database unavailable"}, 500

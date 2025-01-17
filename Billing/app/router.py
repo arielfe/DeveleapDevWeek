@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.controller import db,update_provider_controller,add_provider, Provider  # Import models
-
+from app.controller import db,update_provider_controller,add_provider,health_check_controller, Provider  # Import controllers
 # Create a blueprint for provider-related routes
 provider_routes = Blueprint("provider_routes", __name__)
 
@@ -32,4 +31,7 @@ def post_provider():
     return response
 
 
-
+@provider_routes.route("/health", methods=["GET"])
+def health_check():
+    status, http_status=health_check_controller()
+    return jsonify({"status": status}), http_status
