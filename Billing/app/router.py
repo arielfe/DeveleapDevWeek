@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.controller import db,update_provider_controller,add_provider,health_check_controller,add_truck, Provider  # Import controllers
+from app.controller import db,update_provider_controller,add_provider,health_check_controller,add_truck,update_truck_provider, Provider  # Import controllers
 # Create a blueprint for provider-related routes
 provider_routes = Blueprint("provider_routes", __name__)
 
@@ -48,4 +48,14 @@ def post_truck():
     license_id = data["id"]
     provider_id = data["provider_id"]
     response = add_truck(license_id, provider_id)
+    return response
+
+@provider_routes.route("/truck/<id>", methods=["PUT"])
+def put_truck(id):
+    data = request.json
+    if not data or "provider_id" not in data:
+        return jsonify({"error": "Provider ID is required"}), 400
+
+    provider_id = data["provider_id"]
+    response = update_truck_provider(id, provider_id)
     return response

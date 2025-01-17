@@ -86,3 +86,24 @@ def add_truck(license_id, provider_id):
     except Exception as e:
         db.session.rollback()  # Rollback in case of any errors during the DB operation.  undo any changes made to the database during the current session
         return jsonify({"error": f"An error occurred while processing the request: {str(e)}"}), 500
+    
+def update_truck_provider(truck_id, new_provider_id):
+    try:
+        # Check if the truck exists
+        truck = Truck.query.get(truck_id)
+        if not truck:
+            return jsonify({"error": f"Truck with ID {truck_id} not found"}), 404
+        
+        # Check if the new provider exists
+        provider = Provider.query.get(new_provider_id)
+        if not provider:
+            return jsonify({"error": f"Provider with ID {new_provider_id} not found"}), 404
+        
+        # Update the provider_id of the truck
+        truck.provider_id = new_provider_id
+        db.session.commit()
+
+        return jsonify({"message": f"Truck with ID {truck_id} updated to provider ID {new_provider_id}"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
