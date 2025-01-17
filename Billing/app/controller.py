@@ -42,3 +42,15 @@ def update_provider_controller(provider_id, new_name):
         # Roll back in case of any errors
         db.session.rollback()
         return f"Failed to update provider: {str(e)}", 500
+
+def add_provider(provider_name):
+
+    if Provider.query.filter_by(name=provider_name).first():
+        return jsonify({"error": "Provider already exists"}), 409
+
+    new_provider = Provider(name=provider_name)
+    db.session.add(new_provider)
+    db.session.commit()
+
+    return jsonify({"id": new_provider.id, "name": new_provider.name}), 201
+
