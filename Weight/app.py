@@ -1,12 +1,12 @@
 from flask import Flask, request, jsonify
 import mysql.connector
-from datetime import datetime  # הוספתי את השורה הזו
+from datetime import datetime  
 
 app = Flask(__name__)
 
 # MySQL Configuration
 DB_CONFIG = {
-    'host': '172.17.0.2',  # use this first to check the ip : docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "docker cotainer name"
+    'host': 'localhost',  # use this first to check the ip : docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "docker cotainer name"
     'user': 'nati',
     'password': 'bashisthebest',
     'database': 'weight',
@@ -15,6 +15,7 @@ DB_CONFIG = {
 
 def get_db_connection():
     return mysql.connector.connect(**DB_CONFIG)
+
 
 @app.route('/weight', methods=['GET'])
 def get_weight():
@@ -49,6 +50,19 @@ def get_weight():
             cursor.close()
         if conn:
             conn.close()
+
+# Route to check if Database Server is available Connecting to Database
+@app.route('/health', methods=['GET'])
+def check_mysql():
+    try:
+        mconn = get_db_connection()
+        if mconn.is_connected():
+            mconn.close()  # Closing connection
+            return jsonify({"status": "OK", "message": "MySQL server is running"}), 200
+        
+    except Exception as e:
+        return jsonify({"status": "Failure", "message": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
