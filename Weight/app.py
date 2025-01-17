@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify
 import mysql.connector
+from datetime import datetime  # הוספתי את השורה הזו
 
 app = Flask(__name__)
 
 # MySQL Configuration
 DB_CONFIG = {
-    'host': 'localhost',  # Use the Docker container's network if needed
+    'host': '172.17.0.2',  # use this first to check the ip : docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "docker cotainer name"
     'user': 'nati',
     'password': 'bashisthebest',
     'database': 'weight',
@@ -15,62 +16,39 @@ DB_CONFIG = {
 def get_db_connection():
     return mysql.connector.connect(**DB_CONFIG)
 
-# Route to fetch all data from a table
-@app.route('/containers', methods=['GET'])
-def get_containers():
+@app.route('/weight', methods=['GET'])
+def get_weight():
+    from_param = request.args.get('from', '20230101000000')
+    to_param = request.args.get('to', '20250101000000')
+    filter_param = request.args.get('filter', 'in,out,none')
+
+    # Convert from_param and to_param to datetime
+    from_param = datetime.strptime(from_param, '%Y%m%d%H%M%S')
+    to_param = datetime.strptime(to_param, '%Y%m%d%H%M%S')
+
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM containers_registered")
+
+        # Query to fetch data from `transactions` table
+        query = """
+            SELECT * FROM transactions 
+            WHERE datetime BETWEEN %s AND %s 
+            AND direction IN (%s)
+        """
+        cursor.execute(query, (from_param, to_param, filter_param))
         result = cursor.fetchall()
+        
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
-        cursor.close()
-        conn.close()
-
-# Route to add data to the table
-@app.route('/containers', methods=['POST'])
-def add_container():
-    data = request.get_json()
-    container_id = data.get('container_id')
-    weight = data.get('weight')
-    unit = data.get('unit')
-
-    if not all([container_id, weight, unit]):
-        return jsonify({'error': 'Missing data'}), 400
-
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO containers_registered (container_id, weight, unit) VALUES (%s, %s, %s)",
-            (container_id, weight, unit)
-        )
-        conn.commit()
-        return jsonify({'message': 'Container added successfully'}), 201
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-    finally:
-        cursor.close()
-        conn.close()
-
-
-# Route to check if Database Server is available 
-@app.route('/health', methods=['GET'])
-def check_mysql():
-    try:
-        # Connecting to Database
-        conn = get_db_connection()
-        if conn.is_connected():
-            conn.close()  # Closing connection
-            return jsonify({"status": "OK", "message": "MySQL server is running"}), 200
-        
-    except Exception as e:
-        return jsonify({"status": "Failure", "message": str(e)}), 500
-
-
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
