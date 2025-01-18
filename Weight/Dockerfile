@@ -1,5 +1,8 @@
 FROM mysql:5.7
-RUN apt-get update && apt-get install -y jq curl
+
+# Install packages using yum instead of apt-get
+RUN yum update -y && yum install -y jq curl
+
 # Set root password
 ENV MYSQL_ROOT_PASSWORD=root123
 
