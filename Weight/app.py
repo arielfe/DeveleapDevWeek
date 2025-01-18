@@ -1,4 +1,4 @@
-from flask import Flask, request, Response
+from flask import Flask, request, Response, jsonify
 from datetime import datetime
 import mysql.connector
 import json
@@ -16,16 +16,10 @@ DB_CONFIG = {
 def get_db_connection():
     return mysql.connector.connect(**DB_CONFIG)
 
-def format_json_response(data):
-    for item in data:
-        if isinstance(item.get("containers"), str):
-            item["containers"] = [c.strip().strip('"') for c in item["containers"].strip('[]').split(',') if c.strip()]
-    return json.dumps(data, indent=4)
-
 @app.route('/weight', methods=['GET'])
 def get_weight():
-    from_param = request.args.get('from', datetime.now().strftime('%Y%m%d000000'))  # Default: start of today
-    to_param = request.args.get('to', datetime.now().strftime('%Y%m%d%H%M%S'))  # Default: now
+    from_param = request.args.get('from', datetime.now().strftime('%Y%m%d000000')) # Default: start of today
+    to_param = request.args.get('to', datetime.now().strftime('%Y%m%d%H%M%S')) # Default: now
     filter_param = request.args.get('filter', 'in,out,none')
     print(from_param)
     print(to_param)
@@ -39,7 +33,7 @@ def get_weight():
         response_json = json.dumps({"error": "Invalid date format. Use YYYYMMDDHHMMSS."}, indent=4)
         return Response(response_json, status=400, mimetype='application/json')
 
-        # Prepare filters
+    # Prepare filters
     filter_values = filter_param.split(',')
     placeholders = ', '.join(['%s'] * len(filter_values))
 
@@ -51,9 +45,13 @@ def get_weight():
 
         # Query to fetch data from transactions table
         query = f"""
-            SELECT * FROM transactions 
-            WHERE datetime BETWEEN %s AND %s 
-            AND direction IN ({placeholders})
+        SELECT id, direction, bruto, COALESCE(neto, 'na') as neto, produce, 
+               IF(containers IS NULL OR containers = '', '[]', 
+                  CONCAT('[', GROUP_CONCAT(containers), ']')) as containers
+        FROM transactions
+        WHERE datetime BETWEEN %s AND %s
+          AND direction IN ({placeholders})
+        GROUP BY id, direction, bruto, neto, produce
         """
         cursor.execute(query, (from_param, to_param, *filter_values))
         results = cursor.fetchall()
@@ -64,10 +62,10 @@ def get_weight():
             formatted_results.append({
                 "id": row["id"],
                 "direction": row["direction"],
-                "bruto": row["bruto"],  # in kg
-                "neto": row["neto"] if row["neto"] is not None else "na",  # Replace NULL with "na"
+                "bruto": row["bruto"], # in kg
+                "neto": row["neto"] if row["neto"] is not None else "na", # Replace NULL with "na"
                 "produce": row["produce"],
-                "containers": f"[{','.join(row['containers'].split(','))}]" if row["containers"] else "[]"   # Split containers into a list
+                "containers": f"[{','.join(row['containers'].split(','))}]" if row["containers"] else "[]" # Split containers into a list
             })
 
         response_json = json.dumps(formatted_results, separators=(',', ':'))
@@ -82,4 +80,4 @@ def get_weight():
             conn.close()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000)
