@@ -18,12 +18,14 @@ def get_db_connection():
 
 @app.route('/weight', methods=['GET'])
 def get_weight():
-    from_param = request.args.get('from', datetime.now().strftime('%Y%m%d000000')) # Default: start of today
-    to_param = request.args.get('to', datetime.now().strftime('%Y%m%d%H%M%S')) # Default: now
-    filter_param = request.args.get('filter', 'in,out,none')
-    print(from_param)
-    print(to_param)
-    print(filter_param)
+    # Merge JSON body and query parameters
+    data = request.get_json(silent=True) or {}
+    data = {**data, **request.args}
+
+    # Extract parameters with defaults
+    from_param = data.get('t1', datetime.now().strftime('%Y%m%d000000'))  # Default: start of today
+    to_param = data.get('t2', datetime.now().strftime('%Y%m%d%H%M%S'))  # Default: now
+    filter_param = data.get('filter', 'in,out,none')
 
     # Convert date parameters to datetime
     try:
@@ -36,7 +38,6 @@ def get_weight():
     # Prepare filters
     filter_values = filter_param.split(',')
     placeholders = ', '.join(['%s'] * len(filter_values))
-
     conn = None
     cursor = None
     try:
@@ -45,13 +46,9 @@ def get_weight():
 
         # Query to fetch data from transactions table
         query = f"""
-        SELECT id, direction, bruto, COALESCE(neto, 'na') as neto, produce, 
-               IF(containers IS NULL OR containers = '', '[]', 
-                  CONCAT('[', GROUP_CONCAT(containers), ']')) as containers
-        FROM transactions
-        WHERE datetime BETWEEN %s AND %s
-          AND direction IN ({placeholders})
-        GROUP BY id, direction, bruto, neto, produce
+            SELECT * FROM transactions 
+            WHERE datetime BETWEEN %s AND %s 
+            AND direction IN ({placeholders})
         """
         cursor.execute(query, (from_param, to_param, *filter_values))
         results = cursor.fetchall()
@@ -62,10 +59,10 @@ def get_weight():
             formatted_results.append({
                 "id": row["id"],
                 "direction": row["direction"],
-                "bruto": row["bruto"], # in kg
-                "neto": row["neto"] if row["neto"] is not None else "na", # Replace NULL with "na"
+                "bruto": row["bruto"],  # in kg
+                "neto": row["neto"] if row["neto"] is not None else "na",  # Replace NULL with "na"
                 "produce": row["produce"],
-                "containers": f"[{','.join(row['containers'].split(','))}]" if row["containers"] else "[]" # Split containers into a list
+                "containers": f"[{','.join(row['containers'].split(','))}]" if row["containers"] else "[]"   # Split containers into a list
             })
 
         response_json = json.dumps(formatted_results, separators=(',', ':'))
