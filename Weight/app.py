@@ -18,11 +18,11 @@ def get_db_connection():
 
 @app.route('/weight', methods=['GET'])
 def get_weight():
-    from_param = request.args.get('from', '20230101000000')  # Default: start of current year
-    to_param = request.args.get('to', '20250101000000')  # Default: now
+    from_param = request.args.get('from', datetime.now().strftime('%Y0101000000'))  # Default: start of current year
+    to_param = request.args.get('to', datetime.now().strftime('%Y%m%d%H%M%S'))  # Default: now
     filter_param = request.args.get('filter', 'in,out,none')
 
-    # Convert from_param and to_param to datetime
+    # Convert parameters to proper formats
     try:
         from_param = datetime.strptime(from_param, '%Y%m%d%H%M%S')
         to_param = datetime.strptime(to_param, '%Y%m%d%H%M%S')
@@ -75,19 +75,6 @@ def get_weight():
             cursor.close()
         if conn:
             conn.close()
-
-# Route to check if Database Server is available
-@app.route('/health', methods=['GET'])
-def check_mysql():
-    try:
-        mconn = get_db_connection()
-        if mconn.is_connected():
-            mconn.close()  # Closing connection
-            return jsonify({"status": "OK", "message": "MySQL server is running"}), 200
-        
-    except Exception as e:
-        return jsonify({"status": "Failure", "message": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
