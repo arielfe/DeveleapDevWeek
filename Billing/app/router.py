@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 from app.controller import db,update_provider_controller,add_provider,health_check_controller,add_truck,update_truck_provider,upload_rates_from_excel, Provider  # Import controllers
 import os
 # Create a blueprint for provider-related routes
@@ -73,3 +73,33 @@ def upload_rates():
     
     # Call function to process the uploaded file
     return upload_rates_from_excel(file_path)
+
+@provider_routes.route("/rates", methods=["GET"])
+def get_rate():
+    try:
+        # Excel file location
+        file_path = f"/app/in/rates.xlsx"
+        return send_file(
+            file_path,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f'rates.xlsx'
+        )
+    except FileNotFoundError:
+        return jsonify({"error": "Excel file not found"}), 404
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
