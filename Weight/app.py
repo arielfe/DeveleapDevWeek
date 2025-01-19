@@ -647,6 +647,98 @@ def get_unknown_containers():
         if conn:
             conn.close()
             
+@app.route('/item/<id>', methods=['GET'])
+def get_item_details(id):
+    # Parse query parameters
+    from_param = request.args.get('from', datetime.now().replace(day=1).strftime('%Y%m%d000000'))
+    to_param = request.args.get('to', datetime.now().strftime('%Y%m%d%H%M%S'))
+
+    conn = None
+    cursor = None
+    try:
+        # Convert date parameters to datetime
+        try:
+            from_datetime = datetime.strptime(from_param, '%Y%m%d%H%M%S')
+            to_datetime = datetime.strptime(to_param, '%Y%m%d%H%M%S')
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYYMMDDHHMMSS."}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Check if item exists as truck
+        cursor.execute("SELECT COUNT(*) as truck_count FROM transactions WHERE truck = %s", (id,))
+        truck_exists = cursor.fetchone()['truck_count'] > 0
+
+        # Check if item exists as container
+        cursor.execute("SELECT COUNT(*) as container_count FROM transactions WHERE FIND_IN_SET(%s, containers) > 0", (id,))
+        container_exists = cursor.fetchone()['container_count'] > 0
+
+        if not (truck_exists or container_exists):
+            return jsonify({"error": "Item not found"}), 404
+
+        # Fetch sessions for the item
+        if truck_exists:
+            # For trucks, fetch transaction sessions
+            cursor.execute("""
+                SELECT id FROM transactions 
+                WHERE truck = %s 
+                AND datetime BETWEEN %s AND %s
+                ORDER BY datetime
+            """, (id, from_datetime, to_datetime))
+            sessions = [row['id'] for row in cursor.fetchall()]
+
+            # Get last known tara (truck empty weight)
+            cursor.execute("""
+                SELECT truckTara FROM transactions 
+                WHERE truck = %s AND truckTara IS NOT NULL
+                ORDER BY datetime DESC
+                LIMIT 1
+            """, (id,))
+            last_tara = cursor.fetchone()
+            tara = last_tara['truckTara'] if last_tara else "na"
+
+        else:  # container
+            # For containers, fetch transaction sessions
+            cursor.execute("""
+                SELECT id FROM transactions 
+                WHERE FIND_IN_SET(%s, containers) > 0
+                AND datetime BETWEEN %s AND %s
+                ORDER BY datetime
+            """, (id, from_datetime, to_datetime))
+            sessions = [row['id'] for row in cursor.fetchall()]
+
+            # For containers, tara is the container's registered weight
+            cursor.execute("""
+                SELECT weight, unit FROM containers_registered 
+                WHERE container_id = %s
+            """, (id,))
+            container_weight = cursor.fetchone()
+            
+            if container_weight:
+                # Convert to kg if in lbs
+                tara = round(container_weight['weight'] * 0.454) if container_weight['unit'] == 'lbs' else container_weight['weight']
+            else:
+                tara = "na"
+
+        # Prepare response
+        response = {
+            "id": id,
+            "tara": tara,
+            "sessions": sessions
+        }
+
+        return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+            
 if __name__ == '__main__':
     """
     Main entry point for the application.

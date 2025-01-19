@@ -1,97 +1,80 @@
-CREATE DATABASE IF NOT EXISTS weight;
+DROP DATABASE IF EXISTS weight;
+CREATE DATABASE weight;
 USE weight;
 
-CREATE TABLE IF NOT EXISTS transactions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    datetime DATETIME,
-    direction VARCHAR(4),
-    truck VARCHAR(50),
-    containers TEXT,
-    bruto INT,
-    truckTara INT,
-    neto INT,
-    produce VARCHAR(50)
-);
+-- Create user and grant privileges
+DROP USER IF EXISTS 'nati'@'%';
+CREATE USER 'nati'@'%' IDENTIFIED BY 'bashisthebest';
+GRANT ALL PRIVILEGES ON weight.* TO 'nati'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
 
-CREATE TABLE IF NOT EXISTS containers_registered (
-    container_id VARCHAR(50) PRIMARY KEY,
-    weight INT,
-    unit VARCHAR(3)
-);
+-- Create tables
+CREATE TABLE containers_registered (
+  container_id varchar(15) NOT NULL,
+  weight int(12) DEFAULT NULL,
+  unit varchar(10) DEFAULT NULL,
+  PRIMARY KEY (container_id)
+) ENGINE=MyISAM;
 
--- Insert containers (all weights in kg)
-INSERT INTO containers_registered (container_id, weight, unit) VALUES
-('C1', 100, 'kg'),
-('C2', 150, 'kg'),
-('C3', 200, 'kg'),
-('C4', 250, 'kg'),
-('C5', 300, 'kg'),
-('C6', 175, 'kg'),
-('C7', 225, 'kg'),
-('C8', 275, 'kg'),
-('C9', 325, 'kg'),
-('C10', 280, 'kg'),
-('C11', 190, 'kg'),
-('C12', 220, 'kg'),
-('C13', 170, 'kg'),
-('C14', 210, 'kg'),
-('C15', 240, 'kg');
+CREATE TABLE transactions (
+  id int(12) NOT NULL AUTO_INCREMENT,
+  datetime datetime DEFAULT NULL,
+  direction varchar(10) DEFAULT NULL,
+  truck varchar(50) DEFAULT NULL,
+  containers varchar(10000) DEFAULT NULL,
+  bruto int(12) DEFAULT NULL,
+  truckTara int(12) DEFAULT NULL,
+  neto int(12) DEFAULT NULL,
+  produce varchar(50) DEFAULT NULL,
+  session_id int(12) DEFAULT NULL,
+  weight INT(12) DEFAULT NULL,
+  PRIMARY KEY (id)
+) ENGINE=MyISAM AUTO_INCREMENT=10001;
 
--- Insert sample transactions covering various scenarios (all weights in kg)
-INSERT INTO transactions (datetime, direction, truck, containers, bruto, truckTara, neto, produce) VALUES
--- Regular in-out cycle with single container
-('2024-01-15 08:00:00', 'in', 'T1', 'C1', 4500, NULL, NULL, 'tomatoes'),
-('2024-01-15 09:30:00', 'out', 'T1', 'C1', 4500, 2000, 2400, 'tomatoes'),
+-- Insert containers data
+INSERT INTO containers_registered (container_id, weight, unit)
+VALUES 
+  ('1000', 14340, 'kg'),
+  ('1001', 8590, 'lbs'),
+  ('1002', 6776, 'lbs'),
+  ('1003', 17099, 'lbs'),
+  ('1004', 15311, 'lbs'),
+  ('1005', 6801, 'lbs'),
+  ('1006', 8991, 'lbs'),
+  ('1007', 10016, 'lbs'),
+  ('1008', 14003, 'lbs'),
+  ('1009', 5010, 'lbs'),
+  ('1010', 7796, 'kg'),
+  ('1011', 18805, 'kg'),
+  ('1012', 3836, 'lbs'),
+  ('1013', 10911, 'kg'),
+  ('1014', 10036, 'lbs'),
+  ('1015', 16807, 'lbs'),
+  ('1016', 9929, 'kg'),
+  ('1017', 13977, 'lbs'),
+  ('1018', 5994, 'kg'),
+  ('1019', 4945, 'lbs');
 
--- Multiple containers per truck
-('2024-01-15 10:00:00', 'in', 'T2', 'C2,C3', 6000, NULL, NULL, 'potatoes'),
-('2024-01-15 11:45:00', 'out', 'T2', 'C2,C3', 6000, 2200, 3450, 'potatoes'),
-
--- Heavy load with three containers
-('2024-01-15 13:00:00', 'in', 'T3', 'C4,C5,C6', 7500, NULL, NULL, 'watermelons'),
-('2024-01-15 14:30:00', 'out', 'T3', 'C4,C5,C6', 7500, 2500, 4275, 'watermelons'),
-
--- Standalone container weighing
-('2024-01-15 15:00:00', 'none', NULL, 'C7', 500, NULL, 275, 'oranges'),
-('2024-01-15 15:30:00', 'none', NULL, 'C8,C9', 800, NULL, 200, 'apples'),
-
--- Multiple trucks same day
-('2024-01-16 08:00:00', 'in', 'T4', 'C10', 5200, NULL, NULL, 'cucumbers'),
-('2024-01-16 08:15:00', 'in', 'T5', 'C11', 4800, NULL, NULL, 'carrots'),
-('2024-01-16 09:45:00', 'out', 'T4', 'C10', 5200, 2100, 2820, 'cucumbers'),
-('2024-01-16 10:00:00', 'out', 'T5', 'C11', 4800, 2000, 2610, 'carrots'),
-
--- Late day transactions
-('2024-01-16 16:00:00', 'in', 'T6', 'C12,C13', 6500, NULL, NULL, 'onions'),
-('2024-01-16 17:30:00', 'out', 'T6', 'C12,C13', 6500, 2300, 3810, 'onions'),
-
--- Weekend transactions
-('2024-01-17 09:00:00', 'in', 'T7', 'C14,C15', 7000, NULL, NULL, 'lettuce'),
-('2024-01-17 10:30:00', 'out', 'T7', 'C14,C15', 7000, 2400, 4150, 'lettuce'),
-
--- Different produce types
-('2024-01-17 11:00:00', 'in', 'T8', 'C1,C2', 5500, NULL, NULL, 'cabbage'),
-('2024-01-17 12:30:00', 'out', 'T8', 'C1,C2', 5500, 2100, 3150, 'cabbage'),
-
--- Multiple containers
-('2024-01-17 13:00:00', 'in', 'T9', 'C4,C8,C12', 6800, NULL, NULL, 'peppers'),
-('2024-01-17 14:45:00', 'out', 'T9', 'C4,C8,C12', 6800, 2200, 3855, 'peppers'),
-
--- Recent transactions
-('2024-01-18 08:00:00', 'in', 'T10', 'C3,C6', 5800, NULL, NULL, 'eggplants'),
-('2024-01-18 09:30:00', 'out', 'T10', 'C3,C6', 5800, 2000, 3425, 'eggplants'),
-
--- Standalone container weighings with multiple containers
-('2024-01-18 10:00:00', 'none', NULL, 'C7,C9,C11', 1200, NULL, 460, 'grapes'),
-('2024-01-18 10:30:00', 'none', NULL, 'C13,C15', 900, NULL, 490, 'berries'),
-
--- Latest transactions
-('2024-01-19 08:00:00', 'in', 'T11', 'C2,C4,C6', 6200, NULL, NULL, 'melons'),
-('2024-01-19 09:45:00', 'out', 'T11', 'C2,C4,C6', 6200, 2300, 3325, 'melons');
-
--- Add transactions with unknown containers
-INSERT INTO transactions (datetime, direction, truck, containers, bruto, truckTara, neto, produce) VALUES
-('2024-01-19 14:00:00', 'in', 'T12', 'C16,C17', 5800, NULL, NULL, 'bananas'),
-('2024-01-19 15:30:00', 'out', 'T12', 'C16,C17', 5800, 2100, 3700, 'bananas'),
-('2024-01-19 16:00:00', 'none', NULL, 'C18', 600, NULL, NULL, 'oranges'),
-('2024-01-19 16:30:00', 'in', 'T13', 'C19,C20,C1', 7200, NULL, NULL, 'mangos');
+-- Insert transactions data
+INSERT INTO transactions (datetime, direction, truck, containers, bruto, truckTara, neto, produce, session_id)
+VALUES 
+  ('2025-01-19 15:53:17', 'none', '1000', '1000', 17396, 4316, 13080, 'na', 3533),
+  ('2025-01-19 15:58:17', 'none', '1001', '1001', 11834, 3840, 7994, 'apple', 7106),
+  ('2025-01-19 16:03:17', 'in', '1002', '1002,1002', 7633, 6791, 842, 'orange', 7371),
+  ('2025-01-19 16:08:17', 'in', '1003', '1003', 21077, 4178, 16899, 'tomato', 8991),
+  ('2025-01-19 16:13:17', 'none', '1004', '1004', 19709, 4055, 15654, 'tomato', 7578),
+  ('2025-01-19 16:18:17', 'out', '1000', '1005,1005', 7969, 6379, 1590, 'na', 1059),
+  ('2025-01-19 16:23:17', 'out', '1001', '1006', 11302, 6993, 4309, 'na', 3158),
+  ('2025-01-19 16:28:17', 'in', '1002', '1007', 12979, 6405, 6574, 'orange', 2345),
+  ('2025-01-19 16:33:17', 'none', '1003', '1008', 17981, 4513, 13468, 'tomato', 7167),
+  ('2025-01-19 16:38:17', 'none', '1004', '1009', 5981, 5634, 347, 'apple', 9962),
+  ('2025-01-19 16:43:17', 'out', '1000', '1010', 9778, 5614, 4164, 'tomato', 1231),
+  ('2025-01-19 16:48:17', 'none', '1001', '1011,1011,1011', 22779, 3206, 19573, 'na', 1856),
+  ('2025-01-19 16:53:17', 'out', '1002', '1012,1012', 6192, 4749, 1443, 'apple', 8486),
+  ('2025-01-19 16:58:17', 'in', '1003', '1013,1013,1013', 11705, 3302, 8403, 'apple', 6121),
+  ('2025-01-19 17:03:17', 'in', '1004', '1014', 13634, 3641, 9993, 'apple', 6772),
+  ('2025-01-19 17:08:17', 'none', '1000', '1015', 19560, 4400, 15160, 'na', 3518),
+  ('2025-01-19 17:13:17', 'in', '1001', '1016,1016,1016', 14908, 4238, 10670, 'tomato', 4932),
+  ('2025-01-19 17:18:17', 'in', '1002', '1017,1017', 16611, 3736, 12875, 'tomato', 8720),
+  ('2025-01-19 17:23:17', 'in', '1003', '1018,1018,1018', 7220, 3021, 4199, 'orange', 1485),
+  ('2025-01-19 17:28:17', 'out', '1004', '1019,1019', 6179, 2839, 3340, 'orange', 2630);
