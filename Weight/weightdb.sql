@@ -88,3 +88,10 @@ INSERT INTO transactions (datetime, direction, truck, containers, bruto, truckTa
 -- Latest transactions
 ('2024-01-19 08:00:00', 'in', 'T11', 'C2,C4,C6', 6200, NULL, NULL, 'melons'),
 ('2024-01-19 09:45:00', 'out', 'T11', 'C2,C4,C6', 6200, 2300, 3325, 'melons');
+
+-- Add transactions with unknown containers
+INSERT INTO transactions (datetime, direction, truck, containers, bruto, truckTara, neto, produce) VALUES
+('2024-01-19 14:00:00', 'in', 'T12', 'C16,C17', 5800, NULL, NULL, 'bananas'),
+('2024-01-19 15:30:00', 'out', 'T12', 'C16,C17', 5800, 2100, 3700, 'bananas'),
+('2024-01-19 16:00:00', 'none', NULL, 'C18', 600, NULL, NULL, 'oranges'),
+('2024-01-19 16:30:00', 'in', 'T13', 'C19,C20,C1', 7200, NULL, NULL, 'mangos');
