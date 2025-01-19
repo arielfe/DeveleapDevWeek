@@ -27,6 +27,12 @@ git checkout Weight</code></pre>
 <h3>Option 1: Using Docker Compose (Recommended)</h3>
 <p>This method provides persistent data storage and easier management:</p>
 <pre><code>docker-compose up --build</code></pre>
+## Database Updates
+
+To update the shared database data:
+1. Export your current database:
+   ```bash
+   docker exec weight_mysql mysqldump -unati -pbashisthebest weight > weightdb.sql
 
 <h3>Option 2: Manual Docker Setup</h3>
 <p>If you prefer manual setup:</p>
