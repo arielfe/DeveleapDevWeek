@@ -22,7 +22,7 @@ while ! nc -z mysql 3306; do\n\
   sleep 5\n\
 done\n\
 echo "MySQL is up - starting app"\n\
-exec gunicorn --bind 0.0.0.0:5000 --log-level debug app:app\n\
+exec flask run --host=0.0.0.0 --port=5000\n\
 ' > /app/start.sh && chmod +x /app/start.sh
 
 EXPOSE 5000
