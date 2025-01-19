@@ -37,7 +37,7 @@ def main():
         subprocess.run(["git", "pull", "origin", commit], check=True)
 
         # Change to the directory where docker-compose.yml is located
-        docker_compose_dir = os.path.join(os.getcwd(), "DevOps")
+        docker_compose_dir = os.path.join(os.getcwd(), "DevOps/compose")
 
         if not os.path.isfile(os.path.join(docker_compose_dir, "docker-compose.yml")):
             usage(f"docker-compose.yml not found in {docker_compose_dir}")
