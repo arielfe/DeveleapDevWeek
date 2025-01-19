@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
-from app.controller import db,update_provider_controller,add_provider,health_check_controller,add_truck,update_truck_provider, Provider  # Import controllers
+from app.controller import db,update_provider_controller,add_provider,health_check_controller,add_truck,update_truck_provider,upload_rates_from_excel, Provider  # Import controllers
+import os
 # Create a blueprint for provider-related routes
 provider_routes = Blueprint("provider_routes", __name__)
 
@@ -59,3 +60,16 @@ def put_truck(id):
     provider_id = data["provider_id"]
     response = update_truck_provider(id, provider_id)
     return response
+
+@provider_routes.route('/rates', methods=['POST'])
+def upload_rates():
+    file = request.files.get('file')
+    if not file:
+        return jsonify({"error": "No file provided"}), 400
+
+    # Save the file to /app/in folder inside the container
+    file_path = os.path.join('/app/in', file.filename)
+    file.save(file_path)
+    
+    # Call function to process the uploaded file
+    return upload_rates_from_excel(file_path)

@@ -1,6 +1,8 @@
 from flask import jsonify
 from sqlalchemy import create_engine
 from app import db  # Import the database instance
+from openpyxl import load_workbook
+from app import create_app  # Import the factory function
 
 # Define a Provider model
 class Provider(db.Model):
@@ -107,3 +109,39 @@ def update_truck_provider(truck_id, new_provider_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+def upload_rates_from_excel(file_path):
+    try:
+        # Load the workbook and the active sheet using openpyxl
+        workbook = load_workbook(file_path)
+        sheet = workbook.active
+
+        # Validate the structure of the sheet (check for required columns)
+        headers = [cell.value for cell in sheet[1]]  # Read headers (first row)
+        required_columns = {'Product', 'Rate', 'Scope'}
+        
+        if not required_columns.issubset(headers):
+            return jsonify({"error": "Excel file must contain Product, Rate, and Scope columns"}), 400
+
+        # Clear existing rates
+        Rate.query.delete()
+
+        # Process the rows (skip the header row, so start from row 2)
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            product = str(row[0]).strip()  # Ensure it's a string
+            rate = row[1]  # This will be handled directly as a number (no strip needed)
+            scope = str(row[2]).strip() if row[2] is not None else None  # Ensure it's a string, handle None
+            
+            if scope == 'ALL':
+                scope = None  # Handle 'ALL' as None
+            
+            # Create and add the new rate to the database
+            new_rate = Rate(product_id=product, rate=rate, scope=scope)
+            db.session.add(new_rate)
+
+        # Commit the changes to the database
+        db.session.commit()
+
+        return jsonify({"message": "Rates uploaded successfully"}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

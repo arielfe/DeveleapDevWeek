@@ -16,7 +16,7 @@ services:
     restart: always  # Automatically restart if the service stops
     volumes:
       - .:/app  # Mount the application code for development
-
+      - ./in:/app/in  # Mount the "in" folder for file uploads
   db:
     image: mysql:5.7  # Use the MySQL 5.7 image
     restart: always  # Restart the database if it stops
