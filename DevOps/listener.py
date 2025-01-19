@@ -6,10 +6,7 @@ app = Flask(__name__)
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({
-        "status": "healthy",
-        "message": "The service is up and running."
-    }), 200
+    return jsonify("OK"), 200
 
 @app.route('/webhook', methods=['POST'])
 def github_webhook():
@@ -33,7 +30,7 @@ def github_webhook():
         "-e", f"KEY={key}",
         "-e", f"COMMIT={commit}",
         "-e", f"EMAIL={pusher_email}",
-        CI_listener # Image name
+        build # Image name
     ]
 
     # Run the command
