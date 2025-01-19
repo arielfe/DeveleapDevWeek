@@ -1,0 +1,3 @@
+CREATE USER 'nati'@'%' IDENTIFIED BY 'bashisthebest';
+GRANT ALL PRIVILEGES ON *.* TO 'nati'@'%';
+FLUSH PRIVILEGES;
