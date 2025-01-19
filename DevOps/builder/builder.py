@@ -13,8 +13,14 @@ def usage(err=""):
     sys.exit(1)
 
 
-def main(commit, email, key):
-    # need to use the key for the pull form github, for now its public so no use
+def main():
+     # Fetch environment variables
+    commit = os.environ.get("COMMIT")
+    email = os.environ.get("EMAIL")
+    key = os.environ.get("KEY")
+
+    if not commit or not email or not key:
+        usage("Missing one or more required environment variables.")
     try:
         # Clone the repo if not already cloned
         repo_dir = os.path.basename(repo_url).replace(".git", "")
@@ -31,7 +37,7 @@ def main(commit, email, key):
         subprocess.run(["git", "pull", "origin", commit], check=True)
 
         # Change to the directory where docker-compose.yml is located
-        docker_compose_dir = os.path.join(os.getcwd(), "DevOps")
+        docker_compose_dir = os.path.join(os.getcwd(), "DevOps/compose")
 
         if not os.path.isfile(os.path.join(docker_compose_dir, "docker-compose.yml")):
             usage(f"docker-compose.yml not found in {docker_compose_dir}")
@@ -46,22 +52,11 @@ def main(commit, email, key):
         )
         
 
-        print("Pipeline completed successfully")
+        return print("Pipeline completed successfully")
     
     except subprocess.CalledProcessError as e:
         # handle error
         return usage("git or docker compose fail")
 
 
-# main
-if __name__ == '__main__':
-
-    # recive exact 3 args
-    if len(sys.argv) != 4:
-        usage("try again, need to provide 3 args, \nCommit \nEmail \nkey")
-
-    # extract args to variables
-    commit, email, key = sys.argv[1], sys.argv[2], sys.argv[3]
-    
-    # call main with the args
-    main(commit, email, key)
+main()
