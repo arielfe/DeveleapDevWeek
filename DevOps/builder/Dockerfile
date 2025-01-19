@@ -14,6 +14,6 @@ RUN curl -SL "https://github.com/docker/compose/releases/download/v2.20.2/docker
     -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
-COPY . .
+COPY Builder.py /app/
 
 ENTRYPOINT ["python3", "Builder.py"]
