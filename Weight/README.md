@@ -86,7 +86,15 @@ SELECT * FROM containers_registered;</code></pre>
 }'</code></pre>
 
 <h3>3. Get /unknown containers:</h3>
-<pre><code>curl "http://localhost:5000/unknown" | jq '.'</code></pre>
+<pre><code> curl "http://localhost:5000/unknown" | jq '.'</code></pre>
+<h2>Data Persistence</h2>
+<p>The data will persist between restarts unless you explicitly remove the volume:</p>
+<pre><code># Remove the volume and start fresh:
+docker-compose down -v
+
+# Start services:
+docker-compose up --build</code></pre>
+
 
 <h2>Database Updates</h2>
 <p>To update the shared database data:</p>
@@ -119,6 +127,7 @@ docker-compose up --build</code></pre>
     </li>
     <li>To install jq for JSON formatting:
         <pre><code># Ubuntu/Debian
+<<<<<<< HEAD
 sudo apt-get install jq</code></pre>
     </li>
 </ul>
