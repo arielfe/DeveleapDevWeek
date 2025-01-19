@@ -21,13 +21,12 @@ def main(commit, email, key):
         subprocess.run(["git", "pull", "origin", commit], check=True)
 
         # use docker compose + passing paramaters: commit + email 
-        subprocess.run([
-            "docker-compose",
-            "-f", "docker-compose.yml",
-            "up", "-d"
-            "--build-arg", f"COMMIT={commit}",
-            "--build-arg", f"EMAIL={email}"
-            ], check=True)
+        subprocess.run(
+            ["docker-compose", "up", "-d", "--build"],
+            env=dict(os.environ, COMMIT=commit, EMAIL=email, KEY=key),
+            check=True
+        )
+        
 
         return "Pipeline completed successfully"
     
