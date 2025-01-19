@@ -4,7 +4,7 @@ s = smtplib.SMTP('smtp.gmail.com', 587)
 # start TLS for security
 s.starttls()
 # Authentication
-s.login("ariel.fellous", "erpg dznp mofo nryi ")
+s.login("devweekorange", "aqac pvqi oseg wjni ")
 # message to be sent
 message = "Message_you_need_to_send"
 # sending the mail
