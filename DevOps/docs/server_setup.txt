@@ -1,0 +1,11 @@
+﻿Server setup:
+
+Install docker
+copy builder.py,  Dockerfile_build, listener.py, Dockerfile to server home
+run docker build on Dockerfile_build to name image “build”
+run docker build on Dockerfile to name image “listen”
+docker listen with env KEY = github public key, and docker socket volume
+ 
+
+
+
