@@ -1,0 +1,17 @@
+docker build -t weight-station-db .
+
+docker run -d \
+  --name weight-station-mysql \
+  -p 3306:3306 \
+  -e MYSQL_ROOT_PASSWORD=root123 \
+  weight-station-db
+
+docker ps
+
+docker logs weight-station-mysql
+
+docker exec -it weight-station-mysql mysql -uroot -proot123
+
+docker rmi weight-station-db
+docker rm -f $(docker ps -a -q)
+docker system prune -a  # REMOVES EVEYRTHING: CONTAINERS , IMAGES , NETWORKS !!!!!!!!!
