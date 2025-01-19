@@ -3,6 +3,7 @@ from datetime import datetime
 import mysql.connector
 import json
 import os
+import csv
 from mysql.connector import Error
 
 
@@ -443,6 +444,156 @@ def weight_post():
             conn.close()
         if cursor:
             cursor.close()
+
+@app.route('/batch-weight', methods=['POST'])
+def weight_batch_post():
+    # Allowed file extensions
+    ALLOWED_EXTENSIONS = {'csv', 'json'}
+
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    def process_csv(csv_file):
+        """Process CSV file and extract container weight"""
+        containers = []
+        containers_check = []
+        with open(csv_file, 'r') as file:
+            reader = list(csv.reader(file))
+            headers = reader[0]
+        
+        is_unit = False
+        
+        for unit in headers: # checks if there is 'unit' in file
+            if unit.lower() in ['lbs', 'kg']:
+                unit = unit.lower()
+                is_unit = True
+        if not is_unit:
+            raise Exception("Invalid CSV format or data")
+        
+        try:
+            for row in reader[1:]:
+                container_id = row[0].capitalize()
+                containers_check.append(container_id)
+                weight = row[1]
+                containers.append({"id": container_id, "weight": int(weight), "unit": unit})
+        except Exception:
+            raise Exception("Invalid CSV format or data")
+
+        return containers, containers_check
+
+    def process_json(json_file):
+        """Process JSON file and extract container weight"""
+        try:
+            with open(json_file, 'r') as json_file:
+                data = json.load(json_file)
+                containers = []
+                containers_check = []
+                for item in data:
+                    weight = item["weight"]
+                    unit = item['unit'].lower()
+                    container_id = item['id'].capitalize()
+                    if unit not in ['kg', 'lbs']:
+                         raise Exception("Invalid JSON format or data")
+                    containers.append({"id": container_id, "weight": int(weight), "unit": unit})
+                    containers_check.append(container_id)
+                return containers, containers_check
+        except Exception as e:
+            raise Exception("Invalid JSON format or data")
+
+    # Process the file based on its extension
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Get the absolute path of the current script
+    file_name = request.args.get('file')
+    file = f"{BASE_DIR}/in/{file_name}"
+    
+    if 'file' not in request.args:
+        return jsonify({"error": "No file part in the request"}), 400
+
+    if file_name == '': # checks if the uploaded file has a name (i.e., the user actually selected a file to upload)
+        return jsonify({"error": "No file selected for uploading"}), 400
+
+    if not allowed_file(file_name): # checks if the uploaded file is allowed
+        return jsonify({"error": f"Invalid file type. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"}), 400
+
+    conn = None
+    cursor = None
+
+    try:
+        if file_name.endswith('.csv'):
+            containers, containers_check = process_csv(file)
+        elif file_name.endswith('.json'):
+            containers, containers_check = process_json(file)
+        else:
+            return jsonify({"error": "Unsupported file format."}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Writing data into database
+        for cont in containers:
+            sql = "INSERT INTO containers_registered (container_id, weight, unit) VALUES (%s, %s, %s)"
+            values = (cont["id"], cont["weight"], cont["unit"])
+            cursor.execute(sql, values)
+            conn.commit()
+        
+        # Fetching containers data from 'transactions' db to check for 'neto' nulls due to lack of container info
+        sql_select = """SELECT containers, bruto, truckTara
+                        FROM transactions 
+                        WHERE neto IS NULL 
+                        AND direction IN ('out', 'none')"""
+        
+        cursor.execute(sql_select)
+        fetched_transactions = cursor.fetchall()
+
+        for transaction in fetched_transactions:
+            containers_str, bruto, truckTara = transaction
+            container_ids = containers_str.split(",")  # Splitting string into containers list
+            total_weight = 0
+
+            for container_id in container_ids:
+                if container_id in containers_check:
+                    # Getting container's weight from 'containers_registered'
+                    sql_select = """
+                        SELECT weight, unit
+                        FROM containers_registered 
+                        WHERE container_id = %s
+                    """
+                    cursor.execute(sql_select, (container_id,))
+                    fetched_data = cursor.fetchall()
+                    if fetched_data:
+                        weight, unit = fetched_data[0]
+                        if unit == "lbs":
+                            lb_to_kg = 0.454  # Converting into kg
+                            weight = round(weight * lb_to_kg)
+                        total_weight += weight
+
+                    # Counting 'neto' for 'transactions'
+                    if total_weight > 0:
+                        if truckTara:
+                            neto = bruto - truckTara - total_weight
+                        else:
+                            neto = bruto - total_weight
+
+                        # Updating 'transactions'
+                        sql_update = """
+                            UPDATE transactions 
+                            SET neto = %s 
+                            WHERE containers = %s
+                        """
+                        cursor.execute(sql_update, (neto, containers_str))
+                        conn.commit()
+
+        return jsonify({"message": "File processed successfully", "data": containers}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    finally:
+        # Ensure database connections are properly closed
+        if conn:
+            conn.close()
+        if cursor:
+            cursor.close()
+
+
 
 @app.route('/unknown', methods=['GET'])
 def get_unknown_containers():
