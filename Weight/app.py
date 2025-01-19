@@ -100,7 +100,7 @@ def get_weight():
             })
 
         response_json = json.dumps(formatted_results, separators=(',', ':'))
-        return Response(response_json, mimetype='application/json')
+        return Response(response_json, mimetype='application/json'), 201
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -416,7 +416,7 @@ def weight_post():
             result = {"id": session_id, "truck": "na", "bruto": bruto}
 
         response_json = json.dumps(result, indent=4, sort_keys=False)
-        return Response(response_json, mimetype='application/json'), 201json'), 201
+        return Response(response_json, mimetype='application/json'), 201
 
     except Exception as e:
         # Handle any errors that occur during processing

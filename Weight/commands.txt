@@ -7,11 +7,13 @@ docker run -d \
   weight-station-db
 
 docker ps
-
-docker logs weight-station-mysql
-
 docker exec -it weight-station-mysql mysql -uroot -proot123
 
+pip install flask mysql-connector-python
+python app.py
+
+
+docker logs weight-station-mysql
 docker rmi weight-station-db
 docker rm -f $(docker ps -a -q)
 docker system prune -a  # REMOVES EVEYRTHING: CONTAINERS , IMAGES , NETWORKS !!!!!!!!!
