@@ -95,7 +95,8 @@ SELECT * FROM containers_registered;</code></pre>
     "weight": 1000,
     "unit": "kg"
 }'</code></pre>
-
+<h3>3. Get /unknown containers:</h3>
+<pre><code> curl "http://localhost:5000/unknown" | jq '.'</code></pre>
 <h2>Data Persistence</h2>
 <p>The data will persist between restarts unless you explicitly remove the volume:</p>
 <pre><code># Remove the volume and start fresh:
@@ -134,7 +135,3 @@ docker-compose up --build</code></pre>
         <pre><code># Ubuntu/Debian
 sudo apt-get install jq
 
-# MacOS
-brew install jq</code></pre>
-    </li>
-</ul>
