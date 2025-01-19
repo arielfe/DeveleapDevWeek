@@ -52,13 +52,11 @@ def main():
         )
         
 
-        print("Pipeline completed successfully")
+        return print("Pipeline completed successfully")
     
     except subprocess.CalledProcessError as e:
         # handle error
         return usage("git or docker compose fail")
 
 
-# main
-if __name__ == '__main__':
-    main
+main()
