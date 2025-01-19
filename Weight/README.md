@@ -1,95 +1,92 @@
-Weight Station Project
-This project is a weight station application that allows users to record and manage container weights. It provides a web interface for interacting with the system and stores the data in a MySQL database.
-Prerequisites
-Before running the application, make sure you have the following installed:
+<h1>Weight Station Project</h1>
 
-Python 3.x
-Docker
+<p>This project is a weight station application that allows users to record and manage container weights. It provides a web interface for interacting with the system and stores the data in a MySQL database.</p>
 
-Project Setup
+<h2>Prerequisites</h2>
+<p>Before running the application, make sure you have the following installed:</p>
+<ul>
+    <li>Python 3.x</li>
+    <li>Docker</li>
+    <li>Docker Compose</li>
+    <li>jq (for JSON formatting)</li>
+</ul>
 
-1. Clone the repository:
-git clone https://github.com/arielfe/DeveleapDevWeek.git
+<h2>Project Setup</h2>
+
+<h3>1. Clone the repository:</h3>
+<pre><code>git clone https://github.com/arielfe/DeveleapDevWeek.git
 cd DeveleapDevWeek
-git checkout Weight
+git checkout Weight</code></pre>
 
-2. Navigate to the project directory:
-cd Weight
+<h3>2. Navigate to the project directory:</h3>
+<pre><code>cd Weight</code></pre>
 
-3. Create a virtual environment:
-python3 -m venv myenv
+<h2>Database Setup</h2>
+<p>You have two options to set up the database:</p>
 
-4. Activate the virtual environment:
-source myenv/bin/activate
+<h3>Option 1: Using Docker Compose (Recommended)</h3>
+<p>This method provides persistent data storage and easier management:</p>
+<pre><code>docker-compose up --build</code></pre>
 
-5. Install the project dependencies:
-pip install -r requirements.txt
-
-
-Database Setup
-
-1. Build the MySQL database Docker image:
+<h3>Option 2: Manual Docker Setup</h3>
+<p>If you prefer manual setup:</p>
+<pre><code># Build the MySQL database Docker image
 docker build -t weight-station-db .
 
-2. Run the MySQL database container:
+# Run the MySQL database container
 docker run -d \
   --name weight-station-mysql \
   -p 3306:3306 \
   -e MYSQL_ROOT_PASSWORD=root123 \
-  weight-station-db
+  weight-station-db</code></pre>
 
+<h2>Running the Application</h2>
 
-Running the Application
+<h3>1. Create and activate virtual environment:</h3>
+<pre><code>python3 -m venv myenv
+source myenv/bin/activate</code></pre>
 
-1. Make sure the virtual environment is activated:
-source myenv/bin/activate
+<h3>2. Install dependencies:</h3>
+<pre><code>pip install -r requirements.txt</code></pre>
 
-2. Run the application:
-python app.py
+<h3>3. Run the application:</h3>
+<pre><code>python app.py</code></pre>
 
-Access the application in your web browser at http://localhost:5000.
+<p>Access the application at <strong>http://localhost:5000</strong></p>
 
-Database Operations
-You can connect to the MySQL database and perform various operations:
+<h2>Database Operations</h2>
+<p>Connect to the MySQL database using either method:</p>
 
-1. Connect to the MySQL database:
+<h3>Option 1: Connect as root:</h3>
+<pre><code>docker exec -it weight_mysql mysql -uroot -proot123</code></pre>
 
-- From the host machine:
-docker exec -it weight-station-mysql mysql -uroot -proot123
+<h3>Option 2: Connect as application user:</h3>
+<pre><code>docker exec -it weight_mysql mysql -unati -pbashisthebest</code></pre>
 
-- Or connect with the user 'nati' (from your code):
-docker exec -it weight-station-mysql mysql -unati -pbashisthebest
-
-
-
-2. Check Database Content: Once connected, you can:
-
-- List databases:
+<h3>Common Database Commands:</h3>
+<pre><code># List databases
 SHOW DATABASES;
 
-- Use the weight database:
+# Use weight database
 USE weight;
 
-- List tables:
+# List tables
 SHOW TABLES;
 
-- View transactions:
+# View transactions
 SELECT * FROM transactions;
 
-- View registered containers:
-SELECT * FROM containers_registered;
+# View registered containers
+SELECT * FROM containers_registered;</code></pre>
 
+<h2>API Endpoints</h2>
+<p>Test the API endpoints using curl:</p>
 
+<h3>1. GET weight records (with formatted JSON output):</h3>
+<pre><code>curl "http://localhost:5000/weight?t1=20240101000000&t2=20240119235959" | jq '.'</code></pre>
 
-
-API Endpoints
-You can test the API endpoints using tools like curl or Postman:
-
-1. GET weight records:
-curl "http://localhost:5000/weight?t1=20240101000000&t2=20240119235959" | jq '.'
-
-2. POST new weight:
-curl -X POST "http://localhost:5000/weight" \
+<h3>2. POST new weight:</h3>
+<pre><code>curl -X POST "http://localhost:5000/weight" \
 -H "Content-Type: application/json" \
 -d '{
     "direction": "in",
@@ -97,4 +94,29 @@ curl -X POST "http://localhost:5000/weight" \
     "containers": "C1,C2",
     "weight": 1000,
     "unit": "kg"
-}'
+}'</code></pre>
+
+<h2>Data Persistence</h2>
+<p>When using docker-compose, data persists between container restarts. To start fresh:</p>
+<pre><code># Remove containers and volumes
+docker-compose down -v
+
+# Rebuild and start
+docker-compose up --build</code></pre>
+
+<h2>Troubleshooting</h2>
+<ul>
+    <li>If you see connection errors, ensure the MySQL container is running:
+        <pre><code>docker ps | grep mysql</code></pre>
+    </li>
+    <li>To view MySQL logs:
+        <pre><code>docker-compose logs mysql</code></pre>
+    </li>
+    <li>To install jq for JSON formatting:
+        <pre><code># Ubuntu/Debian
+sudo apt-get install jq
+
+# MacOS
+brew install jq</code></pre>
+    </li>
+</ul>
