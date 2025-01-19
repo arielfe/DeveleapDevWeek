@@ -7,11 +7,36 @@ services:
       dockerfile: Dockerfile
     environment:
       MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: weight
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
     container_name: weight_mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  flask_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.flask
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=nati
+      - DB_PASSWORD=bashisthebest
+      - DB_NAME=weight
+      - DB_PORT=3306
+    depends_on:
+      mysql:
+        condition: service_healthy
+    container_name: weight_flask
 
 volumes:
   mysql_data:

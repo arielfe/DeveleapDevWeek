@@ -5,7 +5,6 @@
 <h2>Prerequisites</h2>
 <p>Before running the application, make sure you have the following installed:</p>
 <ul>
-    <li>Python 3.x</li>
     <li>Docker</li>
     <li>Docker Compose</li>
     <li>jq (for JSON formatting)</li>
@@ -16,43 +15,33 @@
 <h3>1. Clone the repository:</h3>
 <pre><code>git clone https://github.com/arielfe/DeveleapDevWeek.git
 cd DeveleapDevWeek
-git checkout Weight</code></pre>
-
-<h3>2. Navigate to the project directory:</h3>
-<pre><code>cd Weight</code></pre>
-
-<h2>Database Setup</h2>
-<p>You have two options to set up the database:</p>
-
-<h3>Option 1: Using Docker Compose (Recommended)</h3>
-<p>This method provides persistent data storage and easier management:</p>
-<pre><code>docker-compose up --build</code></pre>
-
-<h3>Option 2: Manual Docker Setup</h3>
-<p>If you prefer manual setup:</p>
-<pre><code># Build the MySQL database Docker image
-docker build -t weight-station-db .
-
-# Run the MySQL database container
-docker run -d \
-  --name weight-station-mysql \
-  -p 3306:3306 \
-  -e MYSQL_ROOT_PASSWORD=root123 \
-  weight-station-db</code></pre>
+git checkout Weight
+cd Weight</code></pre>
 
 <h2>Running the Application</h2>
 
-<h3>1. Create and activate virtual environment:</h3>
-<pre><code>python3 -m venv myenv
-source myenv/bin/activate</code></pre>
+<h3>First Time Setup / Reset Environment</h3>
+<pre><code># Stop all containers
+docker-compose down
 
-<h3>2. Install dependencies:</h3>
-<pre><code>pip install -r requirements.txt</code></pre>
+# Remove volumes
+docker-compose down -v
 
-<h3>3. Run the application:</h3>
-<pre><code>python app.py</code></pre>
+# Remove all images related to this project
+docker rmi weight_mysql weight_flask_app
 
-<p>Access the application at <strong>http://localhost:5000</strong></p>
+# Rebuild and start
+docker-compose up --build</code></pre>
+
+<h3>Regular Usage</h3>
+<pre><code># Start the application
+docker-compose up
+
+# Run in detached mode (background)
+docker-compose up -d
+
+# Stop the application
+docker-compose down</code></pre>
 
 <h2>Database Operations</h2>
 <p>Connect to the MySQL database using either method:</p>
@@ -96,13 +85,8 @@ SELECT * FROM containers_registered;</code></pre>
     "unit": "kg"
 }'</code></pre>
 
-<h2>Data Persistence</h2>
-<p>The data will persist between restarts unless you explicitly remove the volume:</p>
-<pre><code># Remove the volume and start fresh:
-docker-compose down -v
-
-# Start services:
-docker-compose up --build</code></pre>
+<h3>3. Get /unknown containers:</h3>
+<pre><code>curl "http://localhost:5000/unknown" | jq '.'</code></pre>
 
 <h2>Database Updates</h2>
 <p>To update the shared database data:</p>
@@ -130,11 +114,19 @@ docker-compose up --build</code></pre>
     <li>To view MySQL logs:
         <pre><code>docker-compose logs mysql</code></pre>
     </li>
+    <li>To view Flask application logs:
+        <pre><code>docker-compose logs flask_app</code></pre>
+    </li>
     <li>To install jq for JSON formatting:
         <pre><code># Ubuntu/Debian
-sudo apt-get install jq
-
-# MacOS
-brew install jq</code></pre>
+sudo apt-get install jq</code></pre>
     </li>
+</ul>
+
+<h2>API Access</h2>
+<p>Once running, the services will be available at:</p>
+<ul>
+    <li>Flask API: <code>http://localhost:5000</code></li>
+    <li>Health Check: <code>http://localhost:5000/health</code></li>
+    <li>MySQL Database: <code>localhost:3306</code></li>
 </ul>

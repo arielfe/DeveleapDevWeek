@@ -2,6 +2,9 @@ from flask import Flask, request, Response, jsonify
 from datetime import datetime
 import mysql.connector
 import json
+import os
+from mysql.connector import Error
+
 
 """
 Weight Station API
@@ -22,12 +25,25 @@ app = Flask(__name__)
 
 # Database configuration
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'nati',
-    'password': 'bashisthebest',
-    'database': 'weight',
-    'port': 3306
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'user': os.getenv('DB_USER', 'nati'),
+    'password': os.getenv('DB_PASSWORD', 'bashisthebest'),
+    'database': os.getenv('DB_NAME', 'weight'),
+    'port': int(os.getenv('DB_PORT', 3306))
 }
+def wait_for_db(max_retries=30, delay_seconds=2):
+    """Wait for database to become available"""
+    for i in range(max_retries):
+        try:
+            conn = get_db_connection()
+            conn.close()
+            print("Database connection successful!")
+            return True
+        except Error as err:
+            print(f"Attempt {i + 1}/{max_retries}: Database not ready yet... {err}")
+            time.sleep(delay_seconds)
+    raise Exception("Could not connect to database after maximum retries")
+
 
 def get_db_connection():
     """Establishes and returns a MySQL database connection"""
@@ -432,10 +448,9 @@ def weight_post():
 def get_unknown_containers():
     """
     Returns a list of container IDs that appear in transactions but are not registered
-    (i.e., have unknown weights)
     
     Returns:
-        JSON array of container IDs that are not in the containers_registered table
+        JSON array of container IDs in format: ["id1","id2",...]
     """
     conn = None
     cursor = None
@@ -468,7 +483,10 @@ def get_unknown_containers():
         # Find containers that appear in transactions but not in registered containers
         unknown_containers = sorted(list(transaction_containers - registered_containers))
 
-        return jsonify(unknown_containers), 200
+        # Format response without space after comma and with double quotes
+        response = '[' + ','.join(f'"{x}"' for x in unknown_containers) + ']'
+        
+        return Response(response, mimetype='application/json'), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -487,4 +505,5 @@ if __name__ == '__main__':
     - debug=True enables debug mode for development
     - host='0.0.0.0' makes the server publicly available
     """
+    wait_for_db()  # Wait for database before starting
     app.run(debug=True, host='0.0.0.0', port=5000)

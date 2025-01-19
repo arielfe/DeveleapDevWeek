@@ -1,0 +1,30 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install netcat-openbsd with minimal layers
+RUN apt-get update \
+    && apt-get install -y netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application
+COPY . .
+
+# Create a wrapper script
+RUN echo '#!/bin/bash\n\
+echo "Waiting for MySQL..."\n\
+while ! nc -z mysql 3306; do\n\
+  echo "MySQL not ready - sleeping 5s"\n\
+  sleep 5\n\
+done\n\
+echo "MySQL is up - starting app"\n\
+exec gunicorn --bind 0.0.0.0:5000 --log-level debug app:app\n\
+' > /app/start.sh && chmod +x /app/start.sh
+
+EXPOSE 5000
+
+CMD ["/app/start.sh"]
