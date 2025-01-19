@@ -22,7 +22,7 @@ app = Flask(__name__)
 
 # Database configuration
 DB_CONFIG = {
-    'host': '172.17.0.2',
+    'host': 'localhost',
     'user': 'nati',
     'password': 'bashisthebest',
     'database': 'weight',

@@ -86,7 +86,7 @@ API Endpoints
 You can test the API endpoints using tools like curl or Postman:
 
 1. GET weight records:
-curl "http://localhost:5000/weight?t1=20240101000000&t2=20240119235959"
+curl "http://localhost:5000/weight?t1=20240101000000&t2=20240119235959" | jq '.'
 
 2. POST new weight:
 curl -X POST "http://localhost:5000/weight" \

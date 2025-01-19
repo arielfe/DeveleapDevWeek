@@ -11,6 +11,7 @@ services:
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
+    container_name: weight_mysql
 
 volumes:
   mysql_data:
