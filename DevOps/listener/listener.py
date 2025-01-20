@@ -23,7 +23,7 @@ def github_webhook():
     command = [
         "docker", "run", "--rm",
         "-v", "/var/run/docker.sock:/var/run/docker.sock",
-        "-v", "~/conf:/conf",
+        "-v", "/conf:/conf",
         "-e", f"COMMIT={commit}",
         "-e", f"EMAIL={pusher_email}",
         "build" # Image name
