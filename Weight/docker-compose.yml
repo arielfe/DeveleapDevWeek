@@ -36,6 +36,7 @@ services:
       - DB_PASSWORD=bashisthebest
       - DB_NAME=weight
       - DB_PORT=3306
+      - FLASK_DEBUG=1  #  enable debug mode for Auto reloading python Flask app upon code changes
     depends_on:
       mysql:
         condition: service_healthy
@@ -50,8 +51,7 @@ services:
         sleep 5;
       done &&
       echo 'MySQL is up - starting app' &&
-      flask run --host=0.0.0.0 --port=5000"
+      flask run --host=0.0.0.0 --port=5000 --reload"  # --reload flag for reloading python Flask app upon code changes
 
 volumes:
   mysql_data:
-    driver: local
