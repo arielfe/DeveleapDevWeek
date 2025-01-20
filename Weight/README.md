@@ -7,16 +7,17 @@
 
 &lt;h2&gt;🛠 Project Overview&lt;/h2&gt;
 &lt;ul&gt;
-    &lt;li&gt;Track truck and container weights&lt;/li&gt;
-    &lt;li&gt;Manage weighing transactions&lt;/li&gt;
-    &lt;li&gt;Support for various weight units (kg/lbs)&lt;/li&gt;
-    &lt;li&gt;Containerized deployment with Docker&lt;/li&gt;
+    &lt;li&gt;Track truck and container weights with precision&lt;/li&gt;
+    &lt;li&gt;Manage complex weighing transactions&lt;/li&gt;
+    &lt;li&gt;Support for multiple weight units (kg/lbs)&lt;/li&gt;
+    &lt;li&gt;Containerized deployment using Docker&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h2&gt;📋 Prerequisites&lt;/h2&gt;
 &lt;ul&gt;
-    &lt;li&gt;Docker&lt;/li&gt;
-    &lt;li&gt;Docker Compose&lt;/li&gt;
+    &lt;li&gt;Docker (version 20.10 or higher)&lt;/li&gt;
+    &lt;li&gt;Docker Compose (version 1.29 or higher)&lt;/li&gt;
+    &lt;li&gt;Git&lt;/li&gt;
     &lt;li&gt;jq (optional, for JSON formatting)&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -24,7 +25,9 @@
 
 &lt;h3&gt;Clone the Repository&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;git clone git@github.com:arielfe/DeveleapDevWeek.git
-cd DeveleapDevWeek &lt;/code&gt;&lt;/pre&gt;
+cd DeveleapDevWeek
+git checkout Weight
+cd Weight&lt;/code&gt;&lt;/pre&gt;
 
 &lt;h3&gt;First Time Setup / Reset Environment&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;# Stop all containers
@@ -119,10 +122,23 @@ sudo apt-get install jq&lt;/code&gt;&lt;/pre&gt;
 &lt;/ul&gt;
 
 &lt;h2&gt;📬 Contributing&lt;/h2&gt;
-&lt;p&gt;Please read the contribution guidelines before submitting a pull request.&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;Fork the repository&lt;/li&gt;
+    &lt;li&gt;Create your feature branch (&lt;code&gt;git checkout -b feature/AmazingFeature&lt;/code&gt;)&lt;/li&gt;
+    &lt;li&gt;Commit your changes (&lt;code&gt;git commit -m 'Add some AmazingFeature'&lt;/code&gt;)&lt;/li&gt;
+    &lt;li&gt;Push to the branch (&lt;code&gt;git push origin feature/AmazingFeature&lt;/code&gt;)&lt;/li&gt;
+    &lt;li&gt;Open a Pull Request&lt;/li&gt;
+&lt;/ul&gt;
 
 &lt;h2&gt;📄 License&lt;/h2&gt;
-&lt;p&gt;[Specify your project's license here]&lt;/p&gt;
+&lt;p&gt;This project is licensed under the MIT License - see the &lt;code&gt;LICENSE&lt;/code&gt; file for details.&lt;/p&gt;
+
+&lt;h2&gt;🤝 Acknowledgments&lt;/h2&gt;
+&lt;ul&gt;
+    &lt;li&gt;Flask&lt;/li&gt;
+    &lt;li&gt;MySQL&lt;/li&gt;
+    &lt;li&gt;Docker&lt;/li&gt;
+&lt;/ul&gt;
 
 &lt;/body&gt;
 &lt;/html&gt;
