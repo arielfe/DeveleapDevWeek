@@ -1,5 +1,4 @@
 from flask import Flask, request, abort, jsonify
-import os
 import subprocess
 
 app = Flask(__name__)
@@ -20,17 +19,14 @@ def github_webhook():
         abort(400, "Commit ID not found")
     pusher_email = payload.get('pusher', {}).get('email', None)
 
-    # Get ssh_key from env
-    key = os.getenv("KEY", "default-value")
-
     # Dynamically pass the variable to a new container
     command = [
         "docker", "run", "--rm",
         "-v", "/var/run/docker.sock:/var/run/docker.sock",
-        "-e", f"KEY={key}",
+        "-v", "~/conf:/conf",
         "-e", f"COMMIT={commit}",
         "-e", f"EMAIL={pusher_email}",
-        build # Image name
+        "build" # Image name
     ]
 
     # Run the command
