@@ -14,20 +14,33 @@ def usage(err=""):
 
 
 def main():
-     # Fetch environment variables
+    # Fetch environment variables
     commit = os.environ.get("COMMIT")
     email = os.environ.get("EMAIL")
-    key = os.environ.get("KEY")
 
+    # Load KEY from file
+    key_path = os.path.expanduser("/conf/id_ed25519_dev")
+    if not os.path.isfile(key_path):
+        usage(f"Key file not found at {key_path}")
+
+    with open(key_path, "r") as key_file:
+        key = key_file.read().strip()
+    
     if not commit or not email or not key:
         usage("Missing one or more required environment variables.")
+
     try:
         # Clone the repo if not already cloned
         repo_dir = os.path.basename(repo_url).replace(".git", "")
 
         if not os.path.isdir(repo_dir):
             print(f"Cloning repository from {repo_url}...")
-            subprocess.run(["git", "clone", repo_url], check=True)
+
+            subprocess.run(
+                ["git", "clone", repo_url],
+                env=dict(os.environ, GIT_SSH_COMMAND=f"ssh -i {key_path}"),
+                check=True
+            )
 
         # Change to the repo directory
         os.chdir(repo_dir)
@@ -46,7 +59,7 @@ def main():
 
         # Run docker-compose with environment variables
         subprocess.run(
-            ["docker-compose", "up", "-d", "--build"],
+            ["docker-compose", "up", "-d", "--build", "-v", "/conf:/conf"],
             env=dict(os.environ, COMMIT=commit, EMAIL=email, KEY=key),
             check=True
         )
