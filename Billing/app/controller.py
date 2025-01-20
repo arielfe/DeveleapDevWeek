@@ -111,11 +111,6 @@ def update_truck_provider(truck_id, new_provider_id):
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 def get_truck_details(truck_id, from_time_str=None, to_time_str=None):
-    first_of_month = datetime.now().replace(day=1, hour=0, minute=0, second=0).strftime('%Y%m%d%H%M%S')
-    from_time_str = from_time_str or first_of_month
-    to_time_str =  to_time_str or datetime.now().strftime('%Y%m%d%H%M%S')
-    
-    # Extract host and endpoint from the API URL
     host = "weight-service"
     port = 5001
     endpoint = f"/item/{truck_id}?from={from_time_str}&to={to_time_str}"
@@ -127,18 +122,11 @@ def get_truck_details(truck_id, from_time_str=None, to_time_str=None):
         if response.status == 404:
             return None  # Truck not found
         elif response.status != 200:
-            return "error_fetching_data"  # Handle unexpected errors
+            return "error_fetching_data"  # Unexpected error from weight service
         data = json.loads(response.read().decode("utf-8"))
         conn.close()
 
-        return {
-            "id": data["id"],
-            "tara": data["tara"],
-            "sessions": data["sessions"]
-        }
-    except http.client.HTTPException as e:
-        return "error_fetching_data"  # Handle HTTP-specific errors
-    except json.JSONDecodeError:
-        return "invalid_json_response"  # Handle case where JSON response is not valid
-    except Exception as e:
-        return "error_fetching_data"  # Handle generic connection errors
+        return data # Return truck data as received from weight service
+        
+    except Exception:
+        return "error_fetching_data"  # Generic error if connection fails
