@@ -277,8 +277,10 @@ def weight_post():
             int: Net weight
             None: If container weights are not available
         """
-        if containers_weight:
+        if containers_weight and type(containers_weight) is list:
             return int(bruto) - int(truckTara) - sum(containers_weight)
+        elif containers_weight and type(containers_weight) is int:
+            return int(bruto) - int(truckTara) - containers_weight
         return None
 
     try:
@@ -413,7 +415,12 @@ def weight_post():
             bruto = weight
             truckTara = 0
             containers_weight = cont_weight(containers, lb_to_kg)
+            if not containers_weight:
+                containers_weight = None
+            else:
+                containers_weight = sum(cont_weight(containers, lb_to_kg))
             neto = neto_weight(bruto, truckTara, containers_weight)
+
 
             # Record transaction
             sql = """
@@ -429,8 +436,7 @@ def weight_post():
             sql_select = 'SELECT id FROM transactions ORDER BY datetime DESC LIMIT 1'
             cursor.execute(sql_select)
             session_id = cursor.fetchone()[0]
-
-            result = {"id": session_id, "truck": "na", "bruto": bruto}
+            result = {"id": session_id, "container": ','.join(containers), "bruto": bruto, "containerTara": containers_weight, "neto": neto}
 
         response_json = json.dumps(result, indent=4, sort_keys=False)
         return Response(response_json, mimetype='application/json'), 201
@@ -592,8 +598,6 @@ def weight_batch_post():
             conn.close()
         if cursor:
             cursor.close()
-
-
 
 @app.route('/unknown', methods=['GET'])
 def get_unknown_containers():
