@@ -86,10 +86,20 @@ def get_weight():
         response_json = json.dumps({"error": "Invalid date format. Use YYYYMMDDHHMMSS."}, indent=4)
         return Response(response_json, status=400, mimetype='application/json')
 
-    # Prepare filters for SQL IN clause
+    # Validate filter parameter
     filter_values = filter_param.split(',')
+    valid_directions = {'in', 'out', 'none'}
+    invalid_directions = [f for f in filter_values if f not in valid_directions]
+
+    if invalid_directions:
+        return jsonify({
+            "status": "Failure",
+            "message": f"Invalid directions in filter: {', '.join(invalid_directions)}. Valid options are 'in', 'out', 'none'."
+        }), 400
+
+    # Prepare filters for SQL IN clause
     placeholders = ', '.join(['%s'] * len(filter_values))
-    
+
     conn = None
     cursor = None
     try:
