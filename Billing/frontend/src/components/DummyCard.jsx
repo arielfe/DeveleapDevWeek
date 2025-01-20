@@ -25,14 +25,10 @@ function DummyCard() {
 
         console.log("API Response:", response.data);
 
-        // Update this line to match the updated API response structure
         const status = response?.data?.status || "Error";
         setHealthStatus(status);
 
-        // Set color based on health status
         setStatusColor(status === "OK" ? "green" : "red");
-        console.log("Health status:", status);
-        console.log("Status color set to:", status === "OK" ? "green" : "red");
       } catch (error) {
         console.error("Error fetching health status:", error);
         setHealthStatus("Error");
@@ -51,17 +47,25 @@ function DummyCard() {
       style={{
         background: "linear-gradient(135deg, #e0c3fc, #8ec5fc)",
         color: "#fff",
+        display: "flex",
+        flexDirection: "column",
+        height: "100%", // Ensure the card fills the available height
       }}
     >
       <CardHeader className="pb-0">
         <h3 className="text-xl font-semibold text-white">Health Check</h3>
       </CardHeader>
-      <CardBody className="pt-0">
-        <p className={`text-lg font-medium`} style={{ color: statusColor }}>
-          Status: {healthStatus}
-        </p>
-      </CardBody>
-      <CardFooter className="flex justify-center">
+
+      {/* Button placed inside CardBody */}
+      <CardBody
+        className="flex justify-center items-center"
+        style={{
+          flex: 1, // Makes the CardBody take up available space
+          display: "flex",
+          justifyContent: "center", // Centers the button horizontally
+          alignItems: "center", // Centers the button vertically
+        }}
+      >
         <Button
           color="gradient"
           radius="full"
@@ -70,6 +74,20 @@ function DummyCard() {
         >
           Refresh
         </Button>
+      </CardBody>
+
+      {/* Status text placed inside CardFooter */}
+      <CardFooter
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "40px", // Ensure there's space for the status text
+        }}
+      >
+        <p className="text-lg" style={{ color: statusColor }}>
+          Status: {healthStatus}
+        </p>
       </CardFooter>
     </Card>
   );

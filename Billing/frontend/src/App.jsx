@@ -1,5 +1,10 @@
 import React from "react";
 import DummyCard from "./components/DummyCard";
+import PutProvider from "./components/PutProvider";
+import PostProvider from "./components/PostProvider";
+import PostTruck from "./components/PostTruck";
+import UpdateTruck from "./components/UpdateTruck";
+import UploadRates from "./components/UploadRates";
 function App() {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -7,11 +12,11 @@ function App() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {/* Render multiple DummyCard components */}
         <DummyCard />
-        <DummyCard />
-        <DummyCard />
-        <DummyCard />
-        <DummyCard />
-        <DummyCard />
+        <PutProvider />
+        <PostProvider />
+        <PostTruck />
+        <UpdateTruck />
+        <UploadRates />
       </div>
     </div>
   );

@@ -1,12 +1,10 @@
-version: '3.9'
-
 services:
   billing-server:
     build:
       context: .  # Backend folder
       dockerfile: Dockerfile
     ports:
-      - "5001:5000"
+      - "5001:5000"  # Change the host port to 5001
     depends_on:
       - db
     environment:
@@ -17,8 +15,12 @@ services:
       - PYTHONPATH=.
     restart: always
     volumes:
-      - .:/app
-      - ./in:/app/in
+      - .:/app  # Mount the app directory
+      - ./in:/app/in  # Mount input directory
+    networks:
+      app_network:
+        ipv4_address: 192.168.2.2
+    platform: linux/amd64  # Force platform to amd64 if needed
 
   db:
     image: mysql:5.7
@@ -30,20 +32,37 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      app_network:
+        ipv4_address: 192.168.2.3
+    platform: linux/amd64  # Force platform to amd64 for compatibility
 
   frontend:
     build:
-      context: ./Frontend
+      context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://billing-server:5000  # Build-time environment variable
+        VITE_API_URL: http://192.168.2.2:5000  # Build-time environment variable
     environment:
-      - VITE_API_URL=http://billing-server:5000  # Runtime environment variable
+      - VITE_API_URL=http://192.168.2.2:5000  # Runtime environment variable
     ports:
       - "3000:3000"
     depends_on:
       - billing-server
-    extra_hosts:
-    - "billing-server:172.18.0.4"
+    volumes:
+      - ./frontend:/frontend  # Mount the frontend directory to avoid rebuilds
+    networks:
+      app_network:
+        ipv4_address: 192.168.2.4
+    platform: linux/amd64  # Force platform to amd64
+    command: npm run dev  # Ensure the dev server starts up
+
 volumes:
   mysql_data:
+
+networks:
+  app_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.2.0/24
