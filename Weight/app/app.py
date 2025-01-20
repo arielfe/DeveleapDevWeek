@@ -659,6 +659,7 @@ def get_unknown_containers():
             cursor.close()
         if conn:
             conn.close()
+            
 @app.route('/item/<id>', methods=['GET'])
 def get_item_details(id):
     # Parse query parameters
@@ -691,11 +692,12 @@ def get_item_details(id):
 
         # Fetch sessions for the item
         if truck_exists:
-            # For trucks, fetch transaction sessions
+            # For trucks, fetch transaction sessions with 'in' direction
             cursor.execute("""
                 SELECT id FROM transactions 
                 WHERE truck = %s 
                 AND datetime BETWEEN %s AND %s
+                AND direction = 'in'
                 ORDER BY datetime
             """, (id, from_datetime, to_datetime))
             sessions = [row['id'] for row in cursor.fetchall()]
@@ -711,11 +713,12 @@ def get_item_details(id):
             tara = last_tara['truckTara'] if last_tara else "na"
 
         else:  # container
-            # For containers, fetch transaction sessions
+            # For containers, fetch transaction sessions with 'none' or 'in' direction
             cursor.execute("""
                 SELECT id FROM transactions 
                 WHERE FIND_IN_SET(%s, containers) > 0
                 AND datetime BETWEEN %s AND %s
+                AND direction IN ('none', 'in')
                 ORDER BY datetime
             """, (id, from_datetime, to_datetime))
             sessions = [row['id'] for row in cursor.fetchall()]
@@ -726,7 +729,7 @@ def get_item_details(id):
                 WHERE container_id = %s
             """, (id,))
             container_weight = cursor.fetchone()
-            
+
             if container_weight:
                 # Convert to kg if in lbs
                 tara = round(container_weight['weight'] * 0.454) if container_weight['unit'] == 'lbs' else container_weight['weight']
@@ -740,7 +743,113 @@ def get_item_details(id):
             "sessions": sessions
         }
 
-        return jsonify(response), 200
+        response_json = json.dumps(response, separators=(',', ':'))
+        return Response(response_json, mimetype='application/json')
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/session/<id>', methods=['GET'])
+def get_session_details(id):
+    """
+    Fetch details for a specific weighing session based on the 'in' or 'none' direction.
+
+    Args:
+        id (str): ID of the transaction.
+
+    Returns:
+        JSON object with details of the session:
+        For 'in':
+        - id: Transaction ID
+        - truck: Truck ID or "na"
+        - bruto: Gross weight
+        - truckTara (if 'out'): Truck empty weight
+        - neto (if 'out'): Net weight or "na" if containers are unknown
+        For 'none':
+        - id: Transaction ID
+        - container: Container ID or "na"
+        - bruto: Gross weight
+        - containerTara: Container weight in kg
+        - neto: Net weight or "na"
+    """
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Fetch the transaction details
+        cursor.execute("SELECT * FROM transactions WHERE id = %s", (id,))
+        transaction = cursor.fetchone()
+
+        if not transaction:
+            return jsonify({"error": "Session not found"}), 404
+
+        # Check the direction and handle accordingly
+        if transaction["direction"] == "in":
+            # Handle 'in' direction
+            session_details = {
+                "id": transaction["id"],
+                "truck": transaction["truck"] if transaction["truck"] else "na",
+                "bruto": transaction["bruto"]
+            }
+
+            # Fetch the corresponding 'out' transaction for the same truck after the 'in' transaction
+            cursor.execute("""
+                SELECT * FROM transactions 
+                WHERE truck = %s AND direction = 'out' AND datetime > %s
+                ORDER BY datetime ASC
+                LIMIT 1
+            """, (transaction["truck"], transaction["datetime"]))
+
+            out_transaction = cursor.fetchone()
+
+            if out_transaction:
+                session_details["truckTara"] = out_transaction["truckTara"]
+                session_details["neto"] = out_transaction["neto"] if out_transaction["neto"] is not None else "na"
+
+            response_json = json.dumps(session_details, separators=(',', ':'))
+            return Response(response_json, mimetype='application/json')
+
+        elif transaction["direction"] == "none":
+            # Handle 'none' direction
+            containers = transaction["containers"].split(",") if transaction["containers"] else []
+            container_id = containers[0] if containers else "na"
+
+            # Fetch container details from containers_registered
+            if container_id != "na":
+                cursor.execute("""
+                    SELECT weight, unit FROM containers_registered WHERE container_id = %s
+                """, (container_id,))
+                container_details = cursor.fetchone()
+
+                if container_details:
+                    weight = container_details["weight"]
+                    unit = container_details["unit"]
+                    container_tara = round(weight * 0.454) if unit == "lbs" else weight
+                else:
+                    container_tara = "na"
+            else:
+                container_tara = "na"
+
+            session_details = {
+                "id": transaction["id"],
+                "container": container_id,
+                "bruto": transaction["bruto"],
+                "containerTara": container_tara,
+                "neto": transaction["neto"] if transaction["neto"] is not None else "na"
+            }
+
+            response_json = json.dumps(session_details, separators=(',', ':'))
+            return Response(response_json, mimetype='application/json')
+
+        else:
+            return jsonify({"error": "Unsupported direction for this session"}), 400
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -762,4 +871,3 @@ if __name__ == '__main__':
     """
     wait_for_db()  # Wait for database before starting
     app.run(debug=True, host='0.0.0.0', port=5000)
-    print("change")
