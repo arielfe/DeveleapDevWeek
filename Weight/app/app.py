@@ -644,7 +644,7 @@ def get_unknown_containers():
         
         # Find unknown containers (in transactions but not registered)
         unknown_containers = sorted(list(transaction_set - registered_set))
-        #print("testing reload")
+        print("testing reload")
         #print("HI")
         #to see changes ,docker-compose logs flask_app
         
