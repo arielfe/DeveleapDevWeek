@@ -813,6 +813,38 @@ def get_session_details(id):
             response_json = json.dumps(session_details, separators=(',', ':'))
             return Response(response_json, mimetype='application/json')
 
+        elif transaction["direction"] == "none":
+            # Handle 'none' direction
+            containers = transaction["containers"].split(",") if transaction["containers"] else []
+            container_id = containers[0] if containers else "na"
+
+            # Fetch container details from containers_registered
+            if container_id != "na":
+                cursor.execute("""
+                    SELECT weight, unit FROM containers_registered WHERE container_id = %s
+                """, (container_id,))
+                container_details = cursor.fetchone()
+
+                if container_details:
+                    weight = container_details["weight"]
+                    unit = container_details["unit"]
+                    container_tara = round(weight * 0.454) if unit == "lbs" else weight
+                else:
+                    container_tara = "na"
+            else:
+                container_tara = "na"
+
+            session_details = {
+                "id": transaction["id"],
+                "container": container_id,
+                "bruto": transaction["bruto"],
+                "containerTara": container_tara,
+                "neto": transaction["neto"] if transaction["neto"] is not None else "na"
+            }
+
+            response_json = json.dumps(session_details, separators=(',', ':'))
+            return Response(response_json, mimetype='application/json')
+
         else:
             return jsonify({"error": "Unsupported direction for this session"}), 400
 
