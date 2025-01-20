@@ -306,7 +306,7 @@ def weight_post():
                 return jsonify({
                     "status": "Failure",
                     "message": f"Conflict: Last record for this truck (ID: {last_record[0]}) is already 'in'. Use force=true to overwrite."
-                }), 400
+                }), 409
             elif last_record and last_record[1] == 'in' and force:
                 sql_delete = 'DELETE FROM transactions WHERE id = %s'
                 cursor.execute(sql_delete, (last_record[0],))
@@ -359,7 +359,7 @@ def weight_post():
                 return jsonify({
                     "status": "Failure",
                     "message": "Conflict: Last record is already 'out'. Use force=true to overwrite."
-                }), 400
+                }), 409
             elif last_direction == 'out' and force:
                 sql_delete = 'DELETE FROM transactions WHERE id = %s'
                 cursor.execute(sql_delete, (session_id,))
