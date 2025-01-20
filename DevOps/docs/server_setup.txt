@@ -13,4 +13,4 @@ TODO : fix:docker listen with env KEY = github public key, and docker socket vol
 
 To setup as service:
 copy ci_listener.service from DevOps/setup folder 
-Not ready yet
+Not ready yet!
