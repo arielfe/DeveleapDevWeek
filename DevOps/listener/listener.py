@@ -1,15 +1,11 @@
 from flask import Flask, request, abort, jsonify
-import os
 import subprocess
 
 app = Flask(__name__)
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({
-        "status": "healthy",
-        "message": "The service is up and running."
-    }), 200
+    return jsonify("OK"), 200
 
 @app.route('/webhook', methods=['POST'])
 def github_webhook():
@@ -23,17 +19,14 @@ def github_webhook():
         abort(400, "Commit ID not found")
     pusher_email = payload.get('pusher', {}).get('email', None)
 
-    # Get ssh_key from env
-    key = os.getenv("KEY", "default-value")
-
     # Dynamically pass the variable to a new container
     command = [
         "docker", "run", "--rm",
         "-v", "/var/run/docker.sock:/var/run/docker.sock",
-        "-e", f"KEY={key}",
+        "-v", "/conf:/conf",
         "-e", f"COMMIT={commit}",
         "-e", f"EMAIL={pusher_email}",
-        CI_listener # Image name
+        "build" # Image name
     ]
 
     # Run the command
