@@ -2,4 +2,6 @@ include:
 services:
   web:
     build: .
-
+    environment:
+       - EMAIL_USER=${EMAIL_USER}
+       - EMAIL_PASS=${EMAIL_PASS}
