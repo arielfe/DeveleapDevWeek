@@ -7,6 +7,6 @@ services:
 
 secrets:
     my_email:
-        file: /conf/email
+        file: /home/ubuntu/conf/email
     my_password:
-        file: /conf/emailpass
+        file: /home/ubuntu/conf/emailpass
