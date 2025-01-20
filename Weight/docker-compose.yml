@@ -2,13 +2,14 @@ version: '3.8'
 
 services:
   mysql:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: mysql:5.7
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: weight
+      MYSQL_USER: nati
+      MYSQL_PASSWORD: bashisthebest
     volumes:
+      - ./weightdb.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
@@ -22,9 +23,11 @@ services:
       start_period: 30s
 
   flask_app:
-    build:
-      context: .
-      dockerfile: Dockerfile.flask
+    image: python:3.9-slim
+    volumes:
+      - ./:/app
+      - ./in:/app/in
+    working_dir: /app
     ports:
       - "5000:5000"
     environment:
@@ -37,6 +40,17 @@ services:
       mysql:
         condition: service_healthy
     container_name: weight_flask
+    command: >
+      bash -c "apt-get update && 
+      apt-get install -y netcat-traditional && 
+      pip install -r requirements.txt &&
+      echo 'Waiting for MySQL...' &&
+      while ! nc -z mysql 3306; do
+        echo 'MySQL not ready - sleeping 5s' &&
+        sleep 5;
+      done &&
+      echo 'MySQL is up - starting app' &&
+      flask run --host=0.0.0.0 --port=5000"
 
 volumes:
   mysql_data:
