@@ -1,59 +1,65 @@
-<h1>Weight Station Project</h1>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;body&gt;
+&lt;h1&gt;Weight Station Project&lt;/h1&gt;
 
-<p>This project is a weight station application that allows users to record and manage container weights. It provides a web interface for interacting with the system and stores the data in a MySQL database.</p>
+&lt;p&gt;A comprehensive web application for managing truck and container weight tracking, built with Flask and MySQL.&lt;/p&gt;
 
-<h2>Prerequisites</h2>
-<p>Before running the application, make sure you have the following installed:</p>
-<ul>
-    <li>Docker</li>
-    <li>Docker Compose</li>
-    <li>jq (for JSON formatting)</li>
-</ul>
+&lt;h2&gt;🛠 Project Overview&lt;/h2&gt;
+&lt;ul&gt;
+    &lt;li&gt;Track truck and container weights&lt;/li&gt;
+    &lt;li&gt;Manage weighing transactions&lt;/li&gt;
+    &lt;li&gt;Support for various weight units (kg/lbs)&lt;/li&gt;
+    &lt;li&gt;Containerized deployment with Docker&lt;/li&gt;
+&lt;/ul&gt;
 
-<h2>Project Setup</h2>
+&lt;h2&gt;📋 Prerequisites&lt;/h2&gt;
+&lt;ul&gt;
+    &lt;li&gt;Docker&lt;/li&gt;
+    &lt;li&gt;Docker Compose&lt;/li&gt;
+    &lt;li&gt;jq (optional, for JSON formatting)&lt;/li&gt;
+&lt;/ul&gt;
 
-<h3>1. Clone the repository:</h3>
-<pre><code>git clone https://github.com/arielfe/DeveleapDevWeek.git
-cd DeveleapDevWeek
-git checkout Weight
-cd Weight</code></pre>
+&lt;h2&gt;🚀 Project Setup&lt;/h2&gt;
 
-<h2>Running the Application</h2>
+&lt;h3&gt;Clone the Repository&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;git clone git@github.com:arielfe/DeveleapDevWeek.git
+cd DeveleapDevWeek &lt;/code&gt;&lt;/pre&gt;
 
-<h3>First Time Setup / Reset Environment</h3>
-<pre><code># Stop all containers
+&lt;h3&gt;First Time Setup / Reset Environment&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# Stop all containers
 docker-compose down
 
 # Remove volumes
 docker-compose down -v
 
-# Remove all images related to this project
+# Remove project images
 docker rmi weight_mysql weight_flask_app
 
 # Rebuild and start
-docker-compose up --build</code></pre>
+docker-compose up --build&lt;/code&gt;&lt;/pre&gt;
 
-<h3>Regular Usage</h3>
-<pre><code># Start the application
+&lt;h3&gt;Regular Usage&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# Start the application
 docker-compose up
 
-# Run in detached mode (background)
+# Run in detached mode
 docker-compose up -d
 
 # Stop the application
-docker-compose down</code></pre>
+docker-compose down&lt;/code&gt;&lt;/pre&gt;
 
-<h2>Database Operations</h2>
-<p>Connect to the MySQL database using either method:</p>
+&lt;h2&gt;🗃️ Database Operations&lt;/h2&gt;
 
-<h3>Option 1: Connect as root:</h3>
-<pre><code>docker exec -it weight_mysql mysql -uroot -proot123</code></pre>
+&lt;h3&gt;Connect to MySQL&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# As root
+docker exec -it weight_mysql mysql -uroot -proot123
 
-<h3>Option 2: Connect as application user:</h3>
-<pre><code>docker exec -it weight_mysql mysql -unati -pbashisthebest</code></pre>
+# As application user
+docker exec -it weight_mysql mysql -unati -pbashisthebest&lt;/code&gt;&lt;/pre&gt;
 
-<h3>Common Database Commands:</h3>
-<pre><code># List databases
+&lt;h3&gt;Common Database Commands&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# List databases
 SHOW DATABASES;
 
 # Use weight database
@@ -66,16 +72,15 @@ SHOW TABLES;
 SELECT * FROM transactions;
 
 # View registered containers
-SELECT * FROM containers_registered;</code></pre>
+SELECT * FROM containers_registered;&lt;/code&gt;&lt;/pre&gt;
 
-<h2>API Endpoints</h2>
-<p>Test the API endpoints using curl:</p>
+&lt;h2&gt;🌐 API Endpoints&lt;/h2&gt;
 
-<h3>1. GET weight records (with formatted JSON output):</h3>
-<pre><code>curl "http://localhost:5000/weight?t1=20240101000000&t2=20240119235959" | jq '.'</code></pre>
+&lt;h3&gt;1. GET Weight Records&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;curl "http://localhost:5000/weight?t1=20240101000000&t2=20240119235959" | jq '.'&lt;/code&gt;&lt;/pre&gt;
 
-<h3>2. POST new weight:</h3>
-<pre><code>curl -X POST "http://localhost:5000/weight" \
+&lt;h3&gt;2. POST New Weight&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;curl -X POST "http://localhost:5000/weight" \
 -H "Content-Type: application/json" \
 -d '{
     "direction": "in",
@@ -83,59 +88,41 @@ SELECT * FROM containers_registered;</code></pre>
     "containers": "C1,C2",
     "weight": 1000,
     "unit": "kg"
-}'</code></pre>
+}'&lt;/code&gt;&lt;/pre&gt;
 
-<h3>3. Get /unknown containers:</h3>
-<pre><code> curl "http://localhost:5000/unknown" | jq '.'</code></pre>
-<h2>Data Persistence</h2>
-<p>The data will persist between restarts unless you explicitly remove the volume:</p>
-<pre><code># Remove the volume and start fresh:
-docker-compose down -v
+&lt;h3&gt;3. Get Unknown Containers&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;curl "http://localhost:5000/unknown" | jq '.'&lt;/code&gt;&lt;/pre&gt;
 
-# Start services:
-docker-compose up --build</code></pre>
+&lt;h2&gt;💾 Data Persistence&lt;/h2&gt;
+&lt;p&gt;Data persists between container restarts. To start fresh:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;docker-compose down -v
+docker-compose up --build&lt;/code&gt;&lt;/pre&gt;
 
+&lt;h2&gt;🔧 Troubleshooting&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;# Check running containers
+docker ps | grep mysql
 
-<h2>Database Updates</h2>
-<p>To update the shared database data:</p>
-<ol>
-    <li>Export your current database:
-        <pre><code>docker exec weight_mysql mysqldump -unati -pbashisthebest weight > weightdb.sql</code></pre>
-    </li>
-    <li>Commit and push the changes:
-        <pre><code>git add weightdb.sql
-git commit -m "update: refresh database sample data"
-git push origin Weight</code></pre>
-    </li>
-</ol>
+# View MySQL logs
+docker-compose logs mysql
 
-<p>Team members can get the latest database by pulling and rebuilding:</p>
-<pre><code>git pull
-docker-compose down -v
-docker-compose up --build</code></pre>
+# View Flask application logs
+docker-compose logs flask_app
 
-<h2>Troubleshooting</h2>
-<ul>
-    <li>If you see connection errors, ensure the MySQL container is running:
-        <pre><code>docker ps | grep mysql</code></pre>
-    </li>
-    <li>To view MySQL logs:
-        <pre><code>docker-compose logs mysql</code></pre>
-    </li>
-    <li>To view Flask application logs:
-        <pre><code>docker-compose logs flask_app</code></pre>
-    </li>
-    <li>To install jq for JSON formatting:
-        <pre><code># Ubuntu/Debian
-<<<<<<< HEAD
-sudo apt-get install jq</code></pre>
-    </li>
-</ul>
+# Install jq (Ubuntu/Debian)
+sudo apt-get install jq&lt;/code&gt;&lt;/pre&gt;
 
-<h2>API Access</h2>
-<p>Once running, the services will be available at:</p>
-<ul>
-    <li>Flask API: <code>http://localhost:5000</code></li>
-    <li>Health Check: <code>http://localhost:5000/health</code></li>
-    <li>MySQL Database: <code>localhost:3306</code></li>
-</ul>
+&lt;h2&gt;🌍 Service Access&lt;/h2&gt;
+&lt;ul&gt;
+    &lt;li&gt;Flask API: &lt;code&gt;http://localhost:5000&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;Health Check: &lt;code&gt;http://localhost:5000/health&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;MySQL Database: &lt;code&gt;localhost:3306&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;📬 Contributing&lt;/h2&gt;
+&lt;p&gt;Please read the contribution guidelines before submitting a pull request.&lt;/p&gt;
+
+&lt;h2&gt;📄 License&lt;/h2&gt;
+&lt;p&gt;[Specify your project's license here]&lt;/p&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
