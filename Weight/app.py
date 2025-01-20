@@ -813,6 +813,17 @@ def get_session_details(id):
             response_json = json.dumps(session_details, separators=(',', ':'))
             return Response(response_json, mimetype='application/json')
 
+        else:
+            return jsonify({"error": "Unsupported direction for this session"}), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
             
 if __name__ == '__main__':
     """
