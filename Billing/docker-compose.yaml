@@ -2,31 +2,48 @@ version: '3.9'
 
 services:
   billing-server:
-    build: .  # Build the image from the Dockerfile in the current directory
+    build:
+      context: .  # Backend folder
+      dockerfile: Dockerfile
     ports:
-      - "5001:5000"  # Map port 5000 in the container to port 5001 on the host
+      - "5001:5000"
     depends_on:
-      - db  # Ensure the database service starts before this service
+      - db
     environment:
       - DB_USER=root
       - DB_PASSWORD=adminpass
-      - DB_HOST=db  # Reference the database service name
+      - DB_HOST=db
       - DB_NAME=billdb
-      - PYTHONPATH=.  # Set PYTHONPATH to the project root
-    restart: always  # Automatically restart if the service stops
+      - PYTHONPATH=.
+    restart: always
     volumes:
-      - .:/app  # Mount the application code for development
-      - ./in:/app/in  # Mount the "in" folder for file uploads
-  db:
-    image: mysql:5.7  # Use the MySQL 5.7 image
-    restart: always  # Restart the database if it stops
-    environment:
-      MYSQL_ROOT_PASSWORD: adminpass  # Root password for MySQL
-      MYSQL_DATABASE: billdb  # Initial database to create
-    ports:
-      - "3306:3306"  # Expose MySQL's port
-    volumes:
-      - mysql_data:/var/lib/mysql  # Persistent data storage for MySQL
+      - .:/app
+      - ./in:/app/in
 
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: adminpass
+      MYSQL_DATABASE: billdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://billing-server:5000  # Build-time environment variable
+    environment:
+      - VITE_API_URL=http://billing-server:5000  # Runtime environment variable
+    ports:
+      - "3000:3000"
+    depends_on:
+      - billing-server
+    extra_hosts:
+    - "billing-server:172.18.0.4"
 volumes:
-  mysql_data:  # Named volume for persistent MySQL storage
+  mysql_data:

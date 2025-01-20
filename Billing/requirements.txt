@@ -4,3 +4,4 @@ pymysql==1.0.3  # MySQL driver for Python
 sqlalchemy==2.0.5  # SQLAlchemy ORM
 cryptography==41.0.3  # For secure password handling (used by pymysql)
 openpyxl==3.0.10 
+flask-cors==3.0.10 

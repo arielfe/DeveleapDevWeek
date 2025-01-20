@@ -13,7 +13,7 @@ WORKDIR /app
 # Copy the requirements file to the working directory
 COPY requirements.txt /app/requirements.txt
 
-# Install dependencies from the requirements file
+# Install dependencies from the requirements filecurl
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy the entire application code to the container

@@ -2,6 +2,7 @@ import os  # For environment variables
 from flask import Flask  # Flask application
 from app import create_app  # Import the factory function
 from db_init import initialize_database  # Database initialization function
+from flask_cors import CORS  # Import CORS
 
 # Environment variables for database configuration
 DB_USER = os.getenv("DB_USER", "root")
@@ -15,11 +16,12 @@ if __name__ == "__main__":
         db_uri=f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
     )
     
+    # Add CORS configuration here
+    CORS(app, origins=["*"])  
+
     # Initialize the database
     with app.app_context():
         initialize_database(app, app.extensions["sqlalchemy"].db)
 
-
     # Start the Flask development server
     app.run(host="0.0.0.0", port=5000, debug=True)
-

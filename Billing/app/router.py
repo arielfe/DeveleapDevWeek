@@ -35,8 +35,8 @@ def post_provider():
 
 @provider_routes.route("/health", methods=["GET"])
 def health_check():
-    status, http_status=health_check_controller()
-    return jsonify({"status": status}), http_status
+    status, http_status = health_check_controller()
+    return jsonify(status), http_status
 
 @provider_routes.route("/truck", methods=["POST"])
 def post_truck():

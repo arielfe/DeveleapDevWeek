@@ -59,13 +59,11 @@ def add_provider(provider_name):
 
 def health_check_controller():
     try:
-        # Try querying a known table
         db.session.query(Provider).first()
-        return {"status": "OK"}, 200
+        return {"status": "OK"}, 200  # Flattened structure
     except Exception as e:
         print(f"Error: {str(e)}")
         return {"status": "Failure", "message": "Database unavailable"}, 500
-
 def add_truck(license_id, provider_id):
     try:
         # Check if the provider exists
