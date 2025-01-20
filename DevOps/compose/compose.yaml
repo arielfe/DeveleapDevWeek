@@ -1,7 +1,12 @@
-include:
 services:
   web:
     build: .
-    environment:
-       - EMAIL_USER=${EMAIL_USER}
-       - EMAIL_PASS=${EMAIL_PASS}
+    secrets:
+        - my_email
+        - my_password
+
+secrets:
+    my_email:
+        file: /conf/email
+    my_password:
+        file: /conf/emailpass

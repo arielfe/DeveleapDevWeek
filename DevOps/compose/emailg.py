@@ -1,8 +1,10 @@
 import smtplib
 import os
 
-email_user = os.environ("EMAIL")
-email_pass = os.environ("EMAIL_PASS")
+with open('/run/secrets/my_email', 'r') as file:
+     email_user = file.read().replace('\n', '')
+with open('/run/secrets/password', 'r') as file:
+     email_pass = file.read().replace('\n', '')
 # creates SMTP session
 s = smtplib.SMTP('smtp.gmail.com', 587)
 # start TLS for security
