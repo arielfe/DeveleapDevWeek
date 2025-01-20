@@ -1,11 +1,15 @@
 ﻿Server setup:
 
-Install docker
-copy builder.py,  Dockerfile_build, listener.py, Dockerfile to server home
+Install docker:
+	sudo apt get install docker
+
+copy builder.py  and Dockerfile_build from DevOps builder directory to server home
+copy listener.py, Dockerfile from DevOps/listener directory to server home
 run docker build on Dockerfile_build to name image “build”
-run docker build on Dockerfile to name image “listen”
-docker listen with env KEY = github public key, and docker socket volume
- 
+run "docker build -t listen ." in server home
+run "docker build -t build -f ./Dockerfile_build ." in server home
+TODO : fix:docker listen with env KEY = github public key, and docker socket volume
 
 
-
+To setup as service:
+copy ci_listener.service from DevOps/setup folder 
