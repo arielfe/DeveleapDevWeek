@@ -1,5 +1,6 @@
 from flask import Flask, request, abort, jsonify
 import subprocess
+import sys
 
 app = Flask(__name__)
 
@@ -9,6 +10,7 @@ def health_check():
 
 @app.route('/webhook', methods=['POST'])
 def github_webhook():
+    print("recieved webhook", file=sys.stderr)
     payload = request.json
     if not payload:
         abort(400, "Missing or invalid payload")
@@ -21,9 +23,9 @@ def github_webhook():
 
     # Dynamically pass the variable to a new container
     command = [
-        "docker", "run", "--rm",
+        "docker", "run",
         "-v", "/var/run/docker.sock:/var/run/docker.sock",
-        "-v", "/conf:/conf",
+        "-v", "/home/ubuntu/conf:/conf",
         "-e", f"COMMIT={commit}",
         "-e", f"EMAIL={pusher_email}",
         "build" # Image name
