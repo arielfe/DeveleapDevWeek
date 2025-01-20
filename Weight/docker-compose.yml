@@ -2,19 +2,14 @@ version: '3.8'
 
 services:
   mysql_weight:
-    image: mysql:5.7
-    environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: weight
-      MYSQL_USER: nati
-      MYSQL_PASSWORD: bashisthebest
+    build: 
+      context: .
+      dockerfile: mysql.Dockerfile
     volumes:
-      - ./app/weightdb.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_weight_data:/var/lib/mysql
     ports:
       - "3306:3306"
     container_name: weight_mysql
-    command: --default-authentication-plugin=mysql_native_password
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
       interval: 10s
@@ -23,35 +18,18 @@ services:
       start_period: 30s
 
   flask_app:
-    image: python:3.9-slim
+    build: 
+      context: .
+      dockerfile: flask.Dockerfile
     volumes:
       - ./app:/app
       - ./app/in:/app/in
-    working_dir: /app
     ports:
       - "5000:5000"
-    environment:
-      - DB_HOST=mysql_weight
-      - DB_USER=nati
-      - DB_PASSWORD=bashisthebest
-      - DB_NAME=weight
-      - DB_PORT=3306
-      - FLASK_DEBUG=1  #  enable debug mode for Auto reloading python Flask app upon code changes
     depends_on:
       mysql_weight:
         condition: service_healthy
     container_name: weight_flask
-    command: >
-      bash -c "apt-get update && 
-      apt-get install -y netcat-traditional && 
-      pip install -r requirements.txt &&
-      echo 'Waiting for MySQL...' &&
-      while ! nc -z mysql_weight 3306; do
-        echo 'MySQL not ready - sleeping 5s' &&
-        sleep 5;
-      done &&
-      echo 'MySQL is up - starting app' &&
-      flask run --host=0.0.0.0 --port=5000 --reload"  # --reload flag for reloading python Flask app upon code changes
 
 volumes:
   mysql_weight_data:
