@@ -151,33 +151,33 @@ def check_mysql():
 def weight_post():
     """
     Records weight measurements for trucks and containers.
-    
+
     Handles three scenarios:
-    1. Incoming trucks (direction='in'): Records initial bruto weight
-    2. Outgoing trucks (direction='out'): Calculates neto weight based on previous 'in' record
-    3. Standalone containers (direction='none'): Records container-only weights
-    
+    1. Incoming trucks (direction='in'): Records initial bruto weight.
+    2. Outgoing trucks (direction='out'): Calculates neto weight based on previous 'in' record.
+    3. Standalone containers (direction='none'): Records container-only weights.
+
     Required Parameters:
-    - direction: Movement direction ('in'/'out'/'none')
-    - weight: Weight value
-    - unit: Weight unit ('kg'/'lbs')
-    
+    - direction: Movement direction ('in'/'out'/'none').
+    - truck: Truck identifier (required for 'in'/'out' directions).
+    - weight: Weight value.
+    - unit: Weight unit ('kg'/'lbs').
+
     Optional Parameters:
-    - truck: Truck identifier (required for 'in'/'out' directions)
-    - containers: Comma-separated list of container IDs
-    - force: Override validation checks if true
-    - produce: Type of produce being transported
-    
+    - containers: Comma-separated list of container IDs.
+    - force: Override validation checks if true.
+    - produce: Type of produce being transported.
+
     Returns:
         JSON object containing transaction details:
-        - id: Transaction ID
-        - truck: Truck identifier
-        - bruto: Gross weight
-        - truckTara: Truck empty weight (for 'out' direction)
-        - neto: Net weight (for 'out' direction)
+        - id: Transaction ID.
+        - truck: Truck identifier.
+        - bruto: Gross weight.
+        - truckTara: Truck empty weight (for 'out' direction).
+        - neto: Net weight (for 'out' direction).
     """
     # Constants
-    lb_to_kg = 0.454  # Conversion factor for pounds to kilograms
+    lb_to_kg = 0.454  # Conversion factor for pounds to kilograms.
 
     # Merge JSON and query parameters
     data = request.get_json(silent=True) or {}
@@ -204,22 +204,29 @@ def weight_post():
         if direction not in ('in', 'out', 'none'):
             return jsonify({
                 "status": "Failure",
-                "message": "Direction must be 'in', 'out' or 'none'"
-            })
+                "message": "Direction must be 'in', 'out', or 'none'"
+            }), 400
     except Exception:
         return jsonify({
             "status": "Failure",
-            "message": "Direction must be 'in', 'out' or 'none'"
-        })
+            "message": "Direction must be 'in', 'out', or 'none'"
+        }), 400
+
+    # Validate truck ID for 'in' and 'out' directions
+    if direction in ('in', 'out') and (not truck or truck == 'na'):
+        return jsonify({
+            "status": "Failure",
+            "message": "Truck ID is required for 'in' or 'out' directions"
+        }), 400
 
     # Validate weight
     try:
-        int(weight)
+        weight = int(weight)
     except Exception:
         return jsonify({
             "status": "Failure",
-            "message": "Weight value is required"
-        })
+            "message": "Weight value is required and must be an integer"
+        }), 400
 
     # Validate and process unit
     try:
@@ -228,26 +235,19 @@ def weight_post():
             return jsonify({
                 "status": "Failure",
                 "message": "Unit must be 'kg' or 'lbs'"
-            })
+            }), 400
         if unit == "lbs":
-            weight = round(int(weight) * lb_to_kg)
+            weight = round(weight * lb_to_kg)
     except Exception:
         return jsonify({
             "status": "Failure",
             "message": "Unit must be 'kg' or 'lbs'"
-        })
+        }), 400
 
+    # Helper functions
     def cont_weight(containers, lb_to_kg):
         """
         Calculate total weight of containers.
-        
-        Args:
-            containers (list): List of container IDs
-            lb_to_kg (float): Conversion factor for pounds to kilograms
-            
-        Returns:
-            list: Weights of containers in kg
-            0 if any container is not found
         """
         containers_weight = []
         sql_select = 'SELECT weight, unit FROM containers_registered WHERE container_id = %s'
@@ -267,19 +267,10 @@ def weight_post():
     def neto_weight(bruto, truckTara, containers_weight):
         """
         Calculate net weight.
-        
-        Args:
-            bruto (int): Gross weight
-            truckTara (int): Truck empty weight
-            containers_weight (list): List of container weights
-            
-        Returns:
-            int: Net weight
-            None: If container weights are not available
         """
-        if containers_weight and type(containers_weight) is list:
+        if containers_weight and isinstance(containers_weight, list):
             return int(bruto) - int(truckTara) - sum(containers_weight)
-        elif containers_weight and type(containers_weight) is int:
+        elif containers_weight and isinstance(containers_weight, int):
             return int(bruto) - int(truckTara) - containers_weight
         return None
 
@@ -301,7 +292,6 @@ def weight_post():
             cursor.execute(sql_check, (truck,))
             last_record = cursor.fetchone()
 
-            # Prevent double 'in' entries unless forced
             if last_record and last_record[1] == 'in' and not force:
                 return jsonify({
                     "status": "Failure",
@@ -312,14 +302,12 @@ def weight_post():
                 cursor.execute(sql_delete, (last_record[0],))
                 conn.commit()
 
-            # Record entry weight
             bruto = weight
             sql = "INSERT INTO transactions (datetime, direction, truck, containers, bruto, produce) VALUES (%s, %s, %s, %s, %s, %s)"
             values = (datetime.now(), direction, truck, ','.join(containers), bruto, produce)
             cursor.execute(sql, values)
             conn.commit()
 
-            # Get session ID
             sql_select = 'SELECT id FROM transactions WHERE truck = %s ORDER BY datetime DESC LIMIT 1'
             cursor.execute(sql_select, (truck,))
             session_id = cursor.fetchone()[0]
@@ -345,7 +333,6 @@ def weight_post():
 
             session_id, containers_in, bruto, produce, last_direction = last_record
 
-            # Validate containers match
             if containers and ','.join(containers) != containers_in:
                 return jsonify({
                     "status": "Failure",
@@ -354,7 +341,6 @@ def weight_post():
             elif not containers:
                 containers = containers_in.split(',')
 
-            # Check for double 'out' entries
             if last_direction == 'out' and not force:
                 return jsonify({
                     "status": "Failure",
@@ -365,24 +351,20 @@ def weight_post():
                 cursor.execute(sql_delete, (session_id,))
                 conn.commit()
 
-            # Calculate weights
             truckTara = weight
             containers_weight = cont_weight(containers, lb_to_kg)
             neto = neto_weight(bruto, truckTara, containers_weight)
-            print(bruto, truckTara, containers_weight, neto)  # Debug print
 
-            # Update previous 'in' transaction
             sql_update = 'UPDATE transactions SET truckTara = %s, neto = %s WHERE id = %s'
             cursor.execute(sql_update, (truckTara, neto, session_id))
             conn.commit()
 
-            # Record exit transaction
             sql_insert = '''
                 INSERT INTO transactions (datetime, direction, truck, containers, bruto, truckTara, neto, produce)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             '''
             cursor.execute(sql_insert,
-                         (datetime.now(), direction, truck, ','.join(containers), bruto, truckTara, neto, produce))
+                           (datetime.now(), direction, truck, ','.join(containers), bruto, truckTara, neto, produce))
             conn.commit()
 
             result = {
@@ -404,25 +386,21 @@ def weight_post():
             cursor.execute(sql_check)
             last_record = cursor.fetchone()
 
-            # Prevent 'none' after 'in'
             if last_record and last_record[0] == 'in':
                 return jsonify({
                     "status": "Failure",
                     "message": "Cannot record standalone weight after 'in' transaction."
                 }), 400
 
-            # Calculate weights
             bruto = weight
             truckTara = 0
             containers_weight = cont_weight(containers, lb_to_kg)
             if not containers_weight:
                 containers_weight = None
             else:
-                containers_weight = sum(cont_weight(containers, lb_to_kg))
+                containers_weight = sum(containers_weight)
             neto = neto_weight(bruto, truckTara, containers_weight)
 
-
-            # Record transaction
             sql = """
                 INSERT INTO transactions 
                 (datetime, direction, truck, containers, bruto, truckTara, neto, produce) 
@@ -432,24 +410,23 @@ def weight_post():
             cursor.execute(sql, values)
             conn.commit()
 
-            # Get session ID
             sql_select = 'SELECT id FROM transactions ORDER BY datetime DESC LIMIT 1'
             cursor.execute(sql_select)
             session_id = cursor.fetchone()[0]
-            result = {"id": session_id, "container": ','.join(containers), "bruto": bruto, "containerTara": containers_weight, "neto": neto}
+            result = {"id": session_id, "container": ','.join(containers), "bruto": bruto,
+                      "containerTara": containers_weight, "neto": neto}
 
         response_json = json.dumps(result, indent=4, sort_keys=False)
         return Response(response_json, mimetype='application/json'), 201
 
     except Exception as e:
-        # Handle any errors that occur during processing
         return jsonify({"status": "Failure", "message": str(e)}), 500
     finally:
-        # Ensure database connections are properly closed
         if conn:
             conn.close()
         if cursor:
             cursor.close()
+
 
 @app.route('/batch-weight', methods=['POST'])
 def weight_batch_post():
