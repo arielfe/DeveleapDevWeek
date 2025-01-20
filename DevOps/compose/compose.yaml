@@ -1,5 +1,12 @@
-include:
 services:
   web:
     build: .
+    secrets:
+        - my_email
+        - my_password
 
+secrets:
+    my_email:
+        file: /conf/email
+    my_password:
+        file: /conf/emailpass
