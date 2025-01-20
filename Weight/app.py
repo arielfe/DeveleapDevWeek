@@ -5,7 +5,7 @@ import json
 import os
 import csv
 from mysql.connector import Error
-
+import time
 
 """
 Weight Station API
@@ -598,55 +598,60 @@ def weight_batch_post():
 @app.route('/unknown', methods=['GET'])
 def get_unknown_containers():
     """
-    Returns a list of container IDs that appear in transactions but are not registered
+    Returns a list of all recorded containers that have unknown weight
     
     Returns:
-        JSON array of container IDs in format: ["id1","id2",...]
+        List of container IDs: ["id1","id2",...]
     """
     conn = None
     cursor = None
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
-
-        # Get all unique container IDs from transactions
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get all unique containers from transactions
         cursor.execute("""
-            SELECT DISTINCT SUBSTRING_INDEX(SUBSTRING_INDEX(t.containers, ',', n.n), ',', -1) as container_id
+            SELECT DISTINCT 
+                TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(t.containers, ',', numbers.n), ',', -1)) as container_id
             FROM transactions t
             CROSS JOIN (
-                SELECT a.N + b.N * 10 + 1 n
-                FROM 
-                    (SELECT 0 AS N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) a,
-                    (SELECT 0 AS N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) b
-                ORDER BY n
-            ) n
-            WHERE n.n <= 1 + (LENGTH(t.containers) - LENGTH(REPLACE(t.containers, ',', '')))
-            AND t.containers IS NOT NULL
+                SELECT 1 + numbers.n AS n
+                FROM (
+                    SELECT 0 AS n UNION ALL
+                    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+                    SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+                    SELECT 9
+                ) numbers
+            ) numbers
+            WHERE numbers.n <= LENGTH(t.containers) - LENGTH(REPLACE(t.containers, ',', '')) + 1
+            AND t.containers IS NOT NULL 
             AND t.containers != ''
+            HAVING container_id != ''
         """)
+        transaction_containers = cursor.fetchall()
         
-        transaction_containers = {row[0] for row in cursor.fetchall()}
-
-        # Get all registered container IDs
+        # Get all known containers
         cursor.execute("SELECT container_id FROM containers_registered")
-        registered_containers = {row[0] for row in cursor.fetchall()}
-
-        # Find containers that appear in transactions but not in registered containers
-        unknown_containers = sorted(list(transaction_containers - registered_containers))
-
-        # Format response without space after comma and with double quotes
-        response = '[' + ','.join(f'"{x}"' for x in unknown_containers) + ']'
+        registered_containers = cursor.fetchall()
         
-        return Response(response, mimetype='application/json'), 200
+        # Create sets for comparison
+        transaction_set = {row['container_id'] for row in transaction_containers}
+        registered_set = {row['container_id'] for row in registered_containers}
+        
+        # Find unknown containers (in transactions but not registered)
+        unknown_containers = sorted(list(transaction_set - registered_set))
+        
+        # Format response as plain text
+        response = '[' + ','.join(f'"{x}"' for x in unknown_containers) + ']'
+        return Response(response, mimetype='text/plain'), 200
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
     finally:
         if cursor:
             cursor.close()
         if conn:
             conn.close()
-            
 @app.route('/item/<id>', methods=['GET'])
 def get_item_details(id):
     # Parse query parameters
