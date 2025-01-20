@@ -644,6 +644,9 @@ def get_unknown_containers():
         
         # Find unknown containers (in transactions but not registered)
         unknown_containers = sorted(list(transaction_set - registered_set))
+        #print("testing reload")
+        #print("HI")
+        #to see changes ,docker-compose logs flask_app
         
         # Format response as plain text
         response = '[' + ','.join(f'"{x}"' for x in unknown_containers) + ']'
@@ -759,3 +762,4 @@ if __name__ == '__main__':
     """
     wait_for_db()  # Wait for database before starting
     app.run(debug=True, host='0.0.0.0', port=5000)
+    print("change")

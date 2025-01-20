@@ -9,7 +9,7 @@ services:
       MYSQL_USER: nati
       MYSQL_PASSWORD: bashisthebest
     volumes:
-      - ./weightdb.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./app/weightdb.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
@@ -25,8 +25,8 @@ services:
   flask_app:
     image: python:3.9-slim
     volumes:
-      - ./:/app
-      - ./in:/app/in
+      - ./app:/app
+      - ./app/in:/app/in
     working_dir: /app
     ports:
       - "5000:5000"
