@@ -15,6 +15,13 @@ def github_webhook():
     if not payload:
         abort(400, "Missing or invalid payload")
 
+    # Determine if the branch is main
+    ref = payload.get('ref', '')  # e.g., "refs/heads/main"
+    branch_name = ref.split('/')[-1] if 'refs/heads/' in ref else None
+    if branch_name == "main":
+        MAIN="YES"
+    else: MAIN="NO"
+
     # Extract commit ID (from the first commit) and pusher email
     commit = payload.get('commits', [{}])[0].get('id', None)
     if not commit:
@@ -26,6 +33,7 @@ def github_webhook():
         "docker", "run",
         "-v", "/var/run/docker.sock:/var/run/docker.sock",
         "-v", "/home/ubuntu/conf:/conf",
+        "-e", f"MAIN_BRANCH={MAIN}",
         "-e", f"COMMIT={commit}",
         "-e", f"EMAIL={pusher_email}",
         "build" # Image name
