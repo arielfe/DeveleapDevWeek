@@ -8,18 +8,17 @@ cd DeveleapDevWeek
 GIT_SSH_COMMAND="ssh -i /conf/id_ed25519_dev -o LogLevel=quiet -o StrictHostKeyChecking=no " git checkout $COMMIT                                              
 
 # change directory to top of repository and store as reference point
-cd DeveleapDevWeek
 REPO_ROOT=$(pwd)
 
 . ./DevOps/config/compose_targets.sh
 
-
 # execute each docker compose testing file
 cd $BILLING_TEST_COMPOSE_FOLDER
-docker compose up -f $BILLING_TEST_COMPOSE_FILE
+pwd
+docker compose -f $BILLING_TEST_COMPOSE_FILE up
 cd $REPO_ROOT
 cd $WEIGHT_TEST_COMPOSE_FOLDER
-docker compose up -f $WEIGHT_TEST_COMPOSE_FILE
+docker compose -f $WEIGHT_TEST_COMPOSE_FILE up
 
 # run build test script. the script will also return mail to the committer
 cd $REPO_ROOT
@@ -34,19 +33,19 @@ fi
 
 # drop all testing env 
 cd $BILLING_TEST_COMPOSE_FOLDER
-docker compose down -v -f $BILLING_TEST_COMPOSE_FILE
+docker compose -v -f $BILLING_TEST_COMPOSE_FILE down
 cd $REPO_ROOT
 cd $WEIGHT_TEST_COMPOSE_FOLDER
-docker compose down -v -f $WEIGHT_TEST_COMPOSE_FILE
+docker compose -v -f $WEIGHT_TEST_COMPOSE_FILE down
 cd $REPO_ROOT
 
 # deploy if needded
 if [ $DEPLOY -eq "YES" ]; then
    cd $BILLING_DEPLOY_COMPOSE_FOLDER
-   docker compose up -f  $BILLING_DEPLOY_COMPOSE_FILE
+   docker compose -f  $BILLING_DEPLOY_COMPOSE_FILE up -d
    cd $REPO_ROOT
    cd $WEIGHT_DEPLOY_COMPOSE_FOLDER
-   docker compose up -f $WEIGHT_DEPLOY_COMPOSE_FILE
+   docker compose -f $WEIGHT_DEPLOY_COMPOSE_FILE -d
    cd $REPO_ROOT
    # run post deploy tests
    cd DevOps/build_tests
