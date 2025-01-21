@@ -1,0 +1,5 @@
+# requirements 
+python:3.10-alpine
+
+# need pip for it ?
+requests
