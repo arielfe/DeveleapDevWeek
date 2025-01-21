@@ -153,13 +153,18 @@ def upload_rates_from_excel(file_path):
     except Exception:
         return "error_fetching_data"  # Generic error if connection fails
 
+SERVICE_HOST = "host.docker.internal"
+WEIGHT_SERVICE_PORT = 5000
+BILLING_SERVICE_PORT = 5001
+BILLING_SERVICE_HOST = "billing-service"
+
 def get_truck_details(truck_id, from_time_str, to_time_str):    
-    host = "host.docker.internal"
-    port = 5000
     endpoint = f"/item/{truck_id}?from={from_time_str}&to={to_time_str}"
-    print(f"Requesting truck data from weight service: {host}:{port}{endpoint}")
+    return fetch_data(endpoint, SERVICE_HOST, WEIGHT_SERVICE_PORT)
+
+def fetch_data(endpoint, service, port):
     try:
-        conn = http.client.HTTPConnection(host, port)
+        conn = http.client.HTTPConnection(service, port)
         conn.request("GET", endpoint)
         response = conn.getresponse()
 
@@ -174,3 +179,81 @@ def get_truck_details(truck_id, from_time_str, to_time_str):
         
     except Exception:
         return "error_fetching_data"  # Generic error if connection fails
+
+# Function to get provider details
+def get_provider_details(provider_id):
+    provider = db.session.query(Provider).get(provider_id)
+    if provider:
+        print ("prvider name is: ", provider.name)
+        return {"id": provider.id, "name": provider.name}
+    return None  # Return None if the provider is not found
+
+# Function to get truck sessions
+def get_truck_sessions(provider_id, from_time_str, to_time_str):
+    truck_data = get_truck_details(provider_id, from_time_str, to_time_str)
+
+    if truck_data and "sessions" in truck_data:
+        return truck_data["sessions"]  # החזרת רשימת הסשנים בלבד
+    
+    return []
+
+# Function to get session details for a list of sessions
+def get_session_details(session_ids):
+    sessions = []
+    for session_id in session_ids:
+        session_data = fetch_data(f"/session/{session_id}", SERVICE_HOST, WEIGHT_SERVICE_PORT)
+        if session_data and session_data.get("neto") != "na":
+            sessions.append({
+                "product": session_data.get("produce", "unknown"),
+                "amount": session_data["neto"]
+            })
+    return sessions
+
+# Function to get rates for products
+def get_product_rates():
+    endpoint = "/rates"
+    rates_data = fetch_data(endpoint, BILLING_SERVICE_HOST, BILLING_SERVICE_PORT)
+
+    if rates_data is None or rates_data == "error_fetching_data":
+        return {}  
+    
+    try:
+        return {rate["product"]: rate["rate"] for rate in rates_data}
+    except Exception as err:
+        return {"error": f"Error processing rates data: {str(err)}"}
+
+# Main function to get bill details
+def get_bill_details(provider_id, from_time_str, to_time_str):
+    provider_data = get_provider_details(provider_id)
+    if not provider_data:
+        return None  # Provider not found
+
+    truck_sessions = get_truck_sessions(provider_id, from_time_str, to_time_str) 
+    sessions = get_session_details(truck_sessions)
+    rates = get_product_rates()
+    
+    product_summary = {}
+    for session in sessions:
+        product = session["product"]
+        amount = session["amount"]
+        rate = rates.get(product, 0)
+
+        if product not in product_summary:
+            product_summary[product] = {"count": 0, "amount": 0, "rate": rate, "pay": 0}
+
+        product_summary[product]["count"] += 1
+        product_summary[product]["amount"] += amount
+        product_summary[product]["pay"] += amount * rate
+
+    products = [{"product": k, **v} for k, v in product_summary.items()]
+
+    return {
+        "id": provider_id,
+        "name": provider_data.get("name", f"Provider {provider_id}"),
+        "from": from_time_str,
+        "to": to_time_str,
+        "truckCount": len(truck_sessions),
+        "sessionCount": len(sessions),
+        "products": products,
+        "total": sum(p["pay"] for p in products)
+    }
