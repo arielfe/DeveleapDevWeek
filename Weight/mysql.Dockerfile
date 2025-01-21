@@ -3,7 +3,7 @@ FROM mysql:5.7
 # Set environment variables
 ENV MYSQL_ROOT_PASSWORD=root123
 ENV MYSQL_DATABASE=weight
-ENV MYSQL_USER=nati
+ENV MYSQL_USER=user_weight
 ENV MYSQL_PASSWORD=bashisthebest
 
 # Copy initialization SQL scripts
