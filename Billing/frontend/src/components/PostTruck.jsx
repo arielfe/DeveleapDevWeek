@@ -38,6 +38,7 @@ function PostTruck() {
           provider_id: providerId,
         }
       );
+      console.log("response from post truck:", JSON.stringify(response));
 
       setResponseMessage(
         `Truck created successfully: License ID - ${response.data.id}, Provider ID - ${response.data.provider_id}`
@@ -45,13 +46,10 @@ function PostTruck() {
       setStatusColor("green");
     } catch (error) {
       console.error("Error creating truck:", error);
-      if (error.response?.status === 400) {
-        setResponseMessage("Truck already exists.");
-        setStatusColor("red");
-      } else {
-        setResponseMessage("Failed to create truck.");
-        setStatusColor("red");
-      }
+      setResponseMessage(
+        error.response?.data?.error || "Failed to create truck."
+      );
+      setStatusColor("red");
     }
   };
 
@@ -98,15 +96,18 @@ function PostTruck() {
       <div
         className="pt-2 text-center"
         style={{
-          minHeight: "40px", // Reserve 40px height for status text
+          minHeight: "40px", // Reserve space for status text
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          marginTop: "10px", // Added margin-top for spacing between button and status
         }}
       >
-        <p className="text-lg" style={{ color: statusColor }}>
-          {responseMessage}
-        </p>
+        {responseMessage && (
+          <p className="text-lg" style={{ color: statusColor }}>
+            {responseMessage}
+          </p>
+        )}
       </div>
     </Card>
   );

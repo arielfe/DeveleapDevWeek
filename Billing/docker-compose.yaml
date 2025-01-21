@@ -1,28 +1,29 @@
+version: '3.9'
+
 services:
   billing-server:
     build:
       context: .  # Backend folder
       dockerfile: Dockerfile
     ports:
-      - "5001:5000"  # Change the host port to 5001
+      - "5001:5000"
     depends_on:
-      - billing-db
+      - db
     environment:
       - DB_USER=root
       - DB_PASSWORD=adminpass
-      - DB_HOST=billingdb
+      - DB_HOST=db
       - DB_NAME=billdb
       - PYTHONPATH=.
     restart: always
     volumes:
-      - .:/app  # Mount the app directory
-      - ./in:/app/in  # Mount input directory
+      - .:/app
+      - ./in:/app/in
     networks:
       app_network:
         ipv4_address: 192.168.2.2
-    platform: linux/amd64  # Force platform to amd64 if needed
 
-  billing-db:
+  db:
     image: mysql:5.7
     restart: always
     environment:
@@ -35,11 +36,10 @@ services:
     networks:
       app_network:
         ipv4_address: 192.168.2.3
-    platform: linux/amd64  # Force platform to amd64 for compatibility
 
   frontend:
     build:
-      context: ./frontend
+      context: ./Frontend
       dockerfile: Dockerfile
       args:
         VITE_API_URL: http://192.168.2.2:5000  # Build-time environment variable
@@ -49,13 +49,9 @@ services:
       - "3000:3000"
     depends_on:
       - billing-server
-    volumes:
-      - ./frontend:/frontend  # Mount the frontend directory to avoid rebuilds
     networks:
       app_network:
         ipv4_address: 192.168.2.4
-    platform: linux/amd64  # Force platform to amd64
-    command: npm run dev  # Ensure the dev server starts up
 
 volumes:
   mysql_data:
@@ -66,3 +62,4 @@ networks:
     ipam:
       config:
         - subnet: 192.168.2.0/24
+
