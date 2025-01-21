@@ -2,6 +2,7 @@ import smtplib
 import requests
 import sys
 import os
+from email.message import EmailMessage
 
 # services
 services = {
@@ -20,12 +21,21 @@ with open('/conf/emailpass', 'r') as file:
 
 
 #  email func
-def send_email(msg):
+def send_email(msg, subject):
     try:
+        message = EmailMessage()
+        message.set_content(msg)
+        message["Subject"] = subject
+        message["From"] = email_user
+        message["To"] = commiter
+        #message = 'Subject: {}\n\n{}'.format(subject, msg)
         s = smtplib.SMTP('smtp.gmail.com', 587)
         s.starttls()
         s.login(email_user, email_pass)
-        s.sendmail(email_user, commiter, msg)
+        #print("msg")
+        #print(msg)
+        #s.sendmail(email_user, commiter, msg)
+        s.send_message(message)
         s.quit()
     except Exception as e:
         print(f"Failed to send email: {e}")
@@ -39,6 +49,7 @@ def check_health():
 
     # for each service + url
     for service_name, url in services.items():
+        print("in loop")
         try:
             response = requests.get(url)
 
@@ -58,12 +69,17 @@ def check_health():
                 
         # catch request error       
         except requests.exceptions.RequestException as e:
-            msg = f"[ERROR] Could not connect to {service_name}: {e}"
+            is_success = False
+            msg = f"[ERROR] Could not connect to {service_name}"
             print(msg)
             messages += f'{msg}\n'
 
     # sending email on both cases
-    send_email(messages)
+    if is_success:
+       subject = 'build success'
+    else:
+        subject = 'build failed'
+    send_email(messages, subject)
 
     # exit codes for success/faliure
     if is_success:
