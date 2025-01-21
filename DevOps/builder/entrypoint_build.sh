@@ -1,6 +1,5 @@
 #!/bin/sh
 # read configuration file for compose file locations within the repository
-. DevOps/config/compose_targets.sh
 
 
 # clone the git repository and checkout the right commit                                                                                                                                               
@@ -11,6 +10,8 @@ GIT_SSH_COMMAND="ssh -i /conf/id_ed25519_dev -o LogLevel=quiet -o StrictHostKeyC
 # change directory to top of repository and store as reference point
 cd DeveleapDevWeek
 REPO_ROOT=$(pwd)
+
+. ./DevOps/config/compose_targets.sh
 
 
 # execute each docker compose testing file
