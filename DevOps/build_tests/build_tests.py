@@ -1,6 +1,7 @@
 import smtplib
 import requests
 import sys
+import os
 
 # services
 services = {
@@ -8,6 +9,8 @@ services = {
     "backend-billing":"http://localhost:5000/health",
     "frontend billing":"http://localhost:8084/health"
     }
+
+commiter = os.environ("EMAIL")
 
 # extract email data
 with open('/run/secrets/my_email', 'r') as file:
@@ -22,7 +25,7 @@ def send_email(msg):
         s = smtplib.SMTP('smtp.gmail.com', 587)
         s.starttls()
         s.login(email_user, email_pass)
-        s.sendmail(email_user, "ariel.fellous@gmail.com", msg)
+        s.sendmail(email_user, commiter, msg)
         s.quit()
     except Exception as e:
         print(f"Failed to send email: {e}")
@@ -30,6 +33,10 @@ def send_email(msg):
 
 # check and call email func
 def check_health():
+
+    messages = '' 
+    is_success= True
+
     # for each service + url
     for service_name, url in services.items():
         try:
@@ -39,22 +46,30 @@ def check_health():
             if response.status_code == 200:
                 msg = f"[SUCCESS] {service_name} is healthy, Status Code: {response.status_code}"
                 print(msg)
-                send_email(msg)
-                return sys.exit(0)
+                messages += f'{msg}\n'
 
             # on failure
             else:
+                is_success = False
                 msg = f"[FAILURE] {service_name} responded with Status Code: {response.status_code}"
                 print(msg)
-                send_email(msg)
-                return sys.exit(1)
+                messages += f'{msg}\n'
+                
                 
         # catch request error       
         except requests.exceptions.RequestException as e:
             msg = f"[ERROR] Could not connect to {service_name}: {e}"
             print(msg)
-            send_email(msg)
-            return sys.exit(1)
+            messages += f'{msg}\n'
+
+    # sending email on both cases
+    send_email(messages)
+
+    # exit codes for success/faliure
+    if is_success:
+        return sys.exit(0)
+    else:
+        return sys.exit(1)
 
 
 if __name__ == "__main__":
