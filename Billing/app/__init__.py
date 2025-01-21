@@ -17,7 +17,8 @@ def create_app(db_uri=None):
     app = Flask(__name__)
     
     # Configure the application
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
+    # or part added by Rami for tests
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_uri or 'sqlite:///:memory:'
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Initialize plugins
