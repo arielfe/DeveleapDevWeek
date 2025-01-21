@@ -188,24 +188,15 @@ def get_provider_details(provider_id):
         return {"id": provider.id, "name": provider.name}
     return None  # Return None if the provider is not found
 
-# Function to get truck sessions
-def get_truck_sessions(provider_id, from_time_str, to_time_str):
-    truck_data = get_truck_details(provider_id, from_time_str, to_time_str)
-
-    if truck_data and "sessions" in truck_data:
-        return truck_data["sessions"]  # החזרת רשימת הסשנים בלבד
-    
-    return []
-
 # Function to get session details for a list of sessions
 def get_session_details(session_ids):
     sessions = []
     for session_id in session_ids:
         session_data = fetch_data(f"/session/{session_id}", SERVICE_HOST, WEIGHT_SERVICE_PORT)
-        if session_data and session_data.get("neto") != "na":
+        if session_data and "neto" in session_data and session_data["neto"] != "na":
             sessions.append({
-                "product": session_data.get("produce", "unknown"),
-                "amount": session_data["neto"]
+                "session_id": session_id, 
+                "amount": session_data.get("neto", 0)
             })
     return sessions
 
@@ -222,19 +213,51 @@ def get_product_rates():
     except Exception as err:
         return {"error": f"Error processing rates data: {str(err)}"}
 
+def get_produce_mapping(provider_id, from_time_str, to_time_str):
+    endpoint = f"/weight?t1={from_time_str}&t2={to_time_str}&id={provider_id}"
+    weight_data = fetch_data(endpoint , SERVICE_HOST, WEIGHT_SERVICE_PORT)
+
+    try:
+        if isinstance(weight_data, str):
+            weight_data = json.loads(weight_data)  # Parse JSON if it's a string
+
+        if not isinstance(weight_data, list):
+            raise ValueError("Invalid weight data format")
+
+    except (json.JSONDecodeError, ValueError) as e:
+        print(f"Error parsing weight data: {e}")
+        return {}
+    
+    produce_mapping = {}
+    for entry in weight_data:
+        produce_mapping[entry.get("id")] = entry.get("produce", "unknown")
+
+    return produce_mapping
+
 # Main function to get bill details
 def get_bill_details(provider_id, from_time_str, to_time_str):
     provider_data = get_provider_details(provider_id)
     if not provider_data:
         return None  # Provider not found
 
-    truck_sessions = get_truck_sessions(provider_id, from_time_str, to_time_str) 
-    sessions = get_session_details(truck_sessions)
+    trucks = Truck.query.filter_by(provider_id=provider_id).all()
+    truck_ids = [truck.id for truck in trucks]
+
+    all_sessions = []
+    for truck_id in truck_ids:
+        truck_data = get_truck_details(truck_id, from_time_str, to_time_str)
+        if truck_data and "sessions" in truck_data:
+            all_sessions.extend(truck_data["sessions"])
+    sessions = get_session_details(all_sessions)
+
+    produce_mapping = get_produce_mapping(provider_id, from_time_str, to_time_str)
+
     rates = get_product_rates()
     
     product_summary = {}
     for session in sessions:
-        product = session["product"]
+        session_id = session["session_id"]
+        product = produce_mapping.get(session_id, "unknown")
         amount = session["amount"]
         rate = rates.get(product, 0)
 
@@ -252,8 +275,8 @@ def get_bill_details(provider_id, from_time_str, to_time_str):
         "name": provider_data.get("name", f"Provider {provider_id}"),
         "from": from_time_str,
         "to": to_time_str,
-        "truckCount": len(truck_sessions),
-        "sessionCount": len(sessions),
+        "truckCount": len(truck_ids),
+        "sessionCount": len(all_sessions),
         "products": products,
         "total": sum(p["pay"] for p in products)
     }
