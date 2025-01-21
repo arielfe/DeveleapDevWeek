@@ -5,7 +5,7 @@ sudo apt get install docker
 
 	Copy relevant files:
 scp [key] [user@host:path/to/source/file] [user@server:home/path]
-# copy builder.py and Dockerfile_build from DevOps builder directory to server home
+# copy builder_entrypoint_build.sh and Dockerfile_build from DevOps builder directory to server home
 # copy listener.py and Dockerfile_listener from DevOps listener directory to server home
 
 	Build the images:
@@ -16,7 +16,3 @@ docker build -t build -f Dockerfile_build . 	# in server home
 docker run --name listener -d -p 8081:5000 -v /home/ubuntu/conf:/conf -v /var/run/docker.sock:/var/run/docker.sock --restart always listen
 
 
-	To setup as service:
-# copy ci_listener.service from DevOps/setup folder 
-
-	## Not ready yet! ##
