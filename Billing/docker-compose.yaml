@@ -6,11 +6,11 @@ services:
     ports:
       - "5001:5000"  # Change the host port to 5001
     depends_on:
-      - db
+      - billing-db
     environment:
       - DB_USER=root
       - DB_PASSWORD=adminpass
-      - DB_HOST=db
+      - DB_HOST=billingdb
       - DB_NAME=billdb
       - PYTHONPATH=.
     restart: always
@@ -22,7 +22,7 @@ services:
         ipv4_address: 192.168.2.2
     platform: linux/amd64  # Force platform to amd64 if needed
 
-  db:
+  billing-db:
     image: mysql:5.7
     restart: always
     environment:

@@ -66,9 +66,9 @@ function PostTruck() {
       <CardHeader className="pb-0">
         <h3 className="text-xl font-semibold text-white">Create New Truck</h3>
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody className="pt-20">
         <Input
-          label="License ID"
+          placeholder="Enter License ID"
           value={licenseId}
           onChange={handleLicenseIdChange}
           fullWidth
@@ -76,7 +76,7 @@ function PostTruck() {
           className="mb-4"
         />
         <Input
-          label="Provider ID"
+          placeholder="Enter Provider ID"
           value={providerId}
           onChange={handleProviderIdChange}
           fullWidth

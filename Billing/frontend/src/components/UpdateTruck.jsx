@@ -61,9 +61,9 @@ function UpdateTruck() {
       <CardHeader className="pb-0">
         <h3 className="text-xl font-semibold text-white">Update Truck</h3>
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody className="pt-20">
         <Input
-          label="Truck ID"
+          placeholder="Truck ID"
           value={truckId}
           onChange={handleTruckIdChange}
           fullWidth
@@ -71,7 +71,7 @@ function UpdateTruck() {
           className="mb-4"
         />
         <Input
-          label="New Provider ID"
+          placeholder="New Provider ID"
           value={providerId}
           onChange={handleProviderIdChange}
           fullWidth

@@ -80,10 +80,10 @@ function UploadRates() {
 
       {/* CardBody for file input */}
       <CardBody
-        className="pt-0 flex justify-center items-center"
+        className="pt-20 flex justify-center items-center"
         style={{
           height: "200px", // You can adjust the height as needed
-          paddingTop: "40px", // Added padding to push the input down slightly
+          paddingTop: "20px", // Adjust padding to give input some space
         }}
       >
         <Input
@@ -93,10 +93,11 @@ function UploadRates() {
           clearable
           className="mb-4"
           accept=".xlsx" // Ensure only .xlsx files can be chosen
+          placeholder="Select a file"
         />
       </CardBody>
 
-      {/* CardFooter for status message */}
+      {/* CardFooter for button and status message */}
       <CardFooter className="flex flex-col justify-center items-center">
         <Button
           color="gradient"

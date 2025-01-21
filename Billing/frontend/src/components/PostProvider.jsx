@@ -60,9 +60,9 @@ function PostProvider() {
           Create New Provider
         </h3>
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody className="pt-20">
         <Input
-          label="Provider Name"
+          placeholder="Enter provider name"
           value={providerName}
           onChange={handleProviderNameChange}
           fullWidth

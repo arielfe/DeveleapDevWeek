@@ -79,10 +79,10 @@ function PutProvider() {
       <CardHeader className="pb-0">
         <h3 className="text-xl font-semibold text-white">Update Provider</h3>
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody className="pt-20">
         {/* Input for Provider ID */}
         <Input
-          label="Provider ID"
+          placeholder="Enter Provider ID"
           value={providerId}
           onChange={handleProviderIdChange}
           fullWidth
@@ -92,7 +92,7 @@ function PutProvider() {
 
         {/* Input for Provider Name */}
         <Input
-          label="Provider Name"
+          placeholder="Enter Provider Name"
           value={providerName}
           onChange={handleProviderNameChange}
           fullWidth
