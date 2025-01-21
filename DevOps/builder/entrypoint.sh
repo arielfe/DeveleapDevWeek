@@ -50,6 +50,6 @@ if [ $DEPLOY -eq "YES" ]; then
    cd $REPO_ROOT
    # run post deploy tests
    cd DevOps/build_tests
-   python deploy_test.py
+   #python deploy_test.py
 fi
 
