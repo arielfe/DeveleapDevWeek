@@ -151,4 +151,18 @@ def test_post_batch_weight_invalid_file():
 
 
 
+#def test_get_health_failure():
+    #response = requests.get(f"{BASE_URL}/health")
+    #assert response.status_code == 500
+    #assert response.text == "Failure"
+
+
+
+ #def test_get_health_success():
+   #response = requests.get(f"{BASE_URL}/health")
+   #assert response.status_code == 200
+   #assert response.text == "OK"
+
+
+
 
