@@ -1,4 +1,4 @@
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, Response, jsonify, render_template
 from datetime import datetime
 import mysql.connector
 import json
@@ -49,6 +49,10 @@ def wait_for_db(max_retries=30, delay_seconds=2):
 def get_db_connection():
     """Establishes and returns a MySQL database connection"""
     return mysql.connector.connect(**DB_CONFIG)
+
+@app.route('/', methods=['GET'])
+def main_form():
+    return render_template('index.html')
 
 @app.route('/weight', methods=['GET'])
 def get_weight():
@@ -442,7 +446,6 @@ def weight_post():
 def weight_batch_post():
     # Allowed file extensions
     ALLOWED_EXTENSIONS = {'csv', 'json'}
-
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -471,7 +474,6 @@ def weight_batch_post():
                 containers.append({"id": container_id, "weight": int(weight), "unit": unit})
         except Exception:
             raise Exception("Invalid CSV format or data")
-
         return containers, containers_check
 
     def process_json(json_file):

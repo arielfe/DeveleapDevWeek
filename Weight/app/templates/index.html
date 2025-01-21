@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script>
+    function switchTab(tabId) {
+      $(".content").removeClass("active");
+      $(`#${tabId}`).addClass("active");
+
+      // Hide or show the Results section based on the active tab
+      if (tabId === "home") {
+        $(".results").hide();
+      } else {
+        $(".results").show();
+      }
+
+      // Reset results box
+      $("#resultBox").text("Results will appear here...");
+    }
+
+    function updateCardsVisibility() {
+      $('input[name="direction"]').change(function () {
+        const selectedValue = $(this).val();
+
+        if (selectedValue === 'none') {
+          $('.truck-row').hide();
+          $('.containers-row').show();
+          $('.produce-row').show();
+        } else if (selectedValue === 'out') {
+          $('.containers-row').hide();
+          $('.produce-row').hide();
+          $('.truck-row').show();
+        } else {
+          $('.truck-row').show();
+          $('.containers-row').show();
+          $('.produce-row').show();
+        }
+      });
+
+      // checking condition of the page while downloading
+      const initialDirection = $('input[name="direction"]:checked').val();
+      if (initialDirection === 'none') {
+        $('.truck-row').hide();
+      }
+    }
+
+    function sendPostRequest(endpoint, data) {
+      $.post(endpoint, data)
+        .done(function(response) {
+          let resultText = '';
+          if (typeof response === 'object') {
+            for (const [key, value] of Object.entries(response)) {
+              if (Array.isArray(value)) {
+                // Для массива объектов
+                resultText += `${key}: ${JSON.stringify(value, null, 2)}\n`;
+              } else {
+                resultText += `${key}: ${value}\n`;
+              }
+            }
+          } else {
+            resultText = response;
+          }
+          $("#resultBox").text(resultText.trim());
+        })
+        .fail(function(xhr) {
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            let resultText = 'Error:\n';
+            for (const [key, value] of Object.entries(errorResponse)) {
+              resultText += `${key}: ${value}\n`;
+            }
+            $("#resultBox").text(resultText.trim());
+          } catch (e) {
+            $("#resultBox").text('Error: ' + xhr.responseText);
+          }
+        });
+    }
+
+    function sendGetRequest(endpoint) {
+      $.get(endpoint)
+        .done(function(response) {
+          try {
+            if (typeof response === 'string') {
+              response = JSON.parse(response);
+            }
+            if (Array.isArray(response)) {
+              let resultText = response.map(obj => JSON.stringify(obj, null, 2)).join(',\n');
+              $("#resultBox").text(`[${resultText}]`);
+            } else {
+              let resultText = '';
+              for (const [key, value] of Object.entries(response)) {
+                resultText += `${key}: ${value}\n`;
+              }
+              $("#resultBox").text(resultText.trim());
+            }
+          } catch (e) {
+            $("#resultBox").text('Error processing response: ' + e.message);
+          }
+        })
+        .fail(function(xhr) {
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            let resultText = 'Error:\n';
+            for (const [key, value] of Object.entries(errorResponse)) {
+              resultText += `${key}: ${value}\n`;
+            }
+            $("#resultBox").text(resultText.trim());
+          } catch (e) {
+            $("#resultBox").text('Error: ' + xhr.responseText);
+          }
+        });
+    }
+
+    $(document).ready(function () {
+      updateCardsVisibility();
+
+      $("#sendWeight").click(function () {
+        const formData = $("#weightForm").serialize();
+        sendPostRequest(`/weight?${formData}`, {});
+      });
+
+      $("#sendBatchWeight").click(function () {
+        const fileName = $("#batchFileName").val();
+        sendPostRequest(`/batch-weight?file=${fileName}`, {});
+      });
+
+      $("#getHealth").click(function () {
+        sendGetRequest('/health');
+      });
+
+      $("#sendGetWeight").click(function () {
+        const t1 = $("#t1").val();
+        const t2 = $("#t2").val();
+        const filter = $("#filter").val();
+
+        const params = [];
+        if (t1) params.push(`t1=${t1}`);
+        if (t2) params.push(`t2=${t2}`);
+        if (filter) params.push(`filter=${filter}`);
+        const queryString = params.length > 0 ? `?${params.join("&")}` : "";
+
+        sendGetRequest(`/weight${queryString}`);
+      });
+
+      $("#getUnknown").click(function () {
+        sendGetRequest('/unknown');
+      });
+
+      $("#getItem").click(function () {
+        const itemId = $("#itemId").val();
+        sendGetRequest(`/item/${itemId}`);
+      });
+
+      $("#getSession").click(function () {
+        const sessionId = $("#sessionId").val();
+        sendGetRequest(`/session/${sessionId}`);
+      });
+
+      $(".navbar a, .shortcut-btn").click(function () {
+        const tabId = $(this).attr("data-tab");
+        switchTab(tabId);
+      });
+
+      switchTab("home"); // Default tab
+    });
+  </script>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <a href="#" data-tab="home">Home</a>
+    <a href="#" data-tab="health">Health Check</a>
+    <a href="#" data-tab="weightPost">Post Weight</a>
+    <a href="#" data-tab="batchWeight">Batch Weight</a>
+    <a href="#" data-tab="getWeight">Get Weight</a>
+    <a href="#" data-tab="unknown">Unknown Containers</a>
+    <a href="#" data-tab="itemDetails">Get Item</a>
+    <a href="#" data-tab="sessionDetails">Get Session</a>
+  </div>
+
+  <div class="main">
+    <!-- Home Page -->
+    <div id="home" class="content active">
+      <h1>Weight Station System</h1>
+      <p>This system handles truck weighing (entry and exit), container management, weight calculations and unit conversions and transaction history</p>
+      <p>Choose an action below to get started:</p>
+      <div class="shortcut-container">
+        <button class="shortcut-btn" data-tab="health">
+          Health Check<br>
+          <span>Verify system and database connectivity.</span>
+        </button>
+        <button class="shortcut-btn" data-tab="weightPost">
+          Post Weight<br>
+          <span>Submit truck and container weight data.</span>
+        </button>
+        <button class="shortcut-btn" data-tab="batchWeight">
+          Batch Weight<br>
+          <span>Upload batch files for container registration.</span>
+        </button>
+        <button class="shortcut-btn" data-tab="getWeight">
+          Get Weight<br>
+          <span>Retrieve weight records by time and filter.</span>
+        </button>
+        <button class="shortcut-btn" data-tab="unknown">
+          Unknown Containers<br>
+          <span>Identify containers with missing weight data.</span>
+        </button>
+        <button class="shortcut-btn" data-tab="itemDetails">
+          Get Item<br>
+          <span>Get detailed information about a truck or container.</span>
+        </button>
+        <button class="shortcut-btn" data-tab="sessionDetails">
+          Get Session<br>
+          <span>View session details by transaction ID.</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Other Tabs -->
+    <div id="health" class="content">
+      <h2>Health Check</h2>
+      <button type="button" id="getHealth">GET /health</button>
+    </div>
+
+    <div id="weightPost" class="content">
+      <h2>Post to /weight</h2>
+      <form id="weightForm">
+        <div class="cards">
+          <div class="left">
+            <div class="radio-group">
+              <span>Direction:</span>
+              <label><input name="direction" type="radio" value="in" checked> In</label>
+              <label><input name="direction" type="radio" value="out"> Out</label>
+              <label><input name="direction" type="radio" value="none"> None</label>
+            </div>
+            <div class="form-row truck-row">
+              <span>Truck:</span>
+              <input name="truck" type="text" placeholder="Truck ID">
+            </div>
+            <div class="form-row">
+              <span>Weight:</span>
+              <input name="weight" type="number" placeholder="Weight">
+            </div>
+          </div>
+          <div class="right">
+            <div class="radio-group">
+              <span>Unit:</span>
+              <label><input name="unit" type="radio" value="kg"> Kg</label>
+              <label><input name="unit" type="radio" value="lbs"> Lbs</label>
+            </div>
+            <div class="form-row containers-row">
+              <span>Containers:</span>
+              <input name="containers" type="text" placeholder="Comma-separated IDs">
+            </div>
+            <div class="form-row produce-row">
+              <span>Produce:</span>
+              <input name="produce" type="text" placeholder="Produce type">
+            </div>
+          </div>
+        </div>
+        <label><input name="force" type="checkbox" value="true"> Force overwrite</label>
+      </form>
+      <button type="button" id="sendWeight">Send</button>
+    </div>
+
+    <!-- Other Content Sections -->
+    <div id="batchWeight" class="content">
+      <h2>Post to /batch-weight</h2>
+      File Name: <input id="batchFileName" type="text" placeholder="File name (e.g., data.csv)"><br>
+      <button type="button" id="sendBatchWeight">Send</button>
+    </div>
+
+    <div id="getWeight" class="content">
+      <h2>Get Weight</h2>
+      <div class="form-row">
+        <span>Start Time:</span><input id="t1" type="text" placeholder="YYYYMMDDHHMMSS (default: today at 000000)">
+        <span>End Time:</span><input id="t2" type="text" placeholder="YYYYMMDDHHMMSS (default: now)">
+      </div>
+      <div class="form-row">
+        <span>Filter:</span><input id="filter" type="text" placeholder="Comma delimited directions (default: 'in,out,none')">
+      </div>
+      <button type="button" id="sendGetWeight">Get Weight</button>
+    </div>
+
+    <div id="unknown" class="content">
+      <h2>Get Unknown Containers</h2>
+      <button type="button" id="getUnknown">Get Unknown Containers</button>
+    </div>
+
+    <div id="itemDetails" class="content">
+      <h2>Get Item</h2>
+      <div class="form-row">
+      <span>Item ID:</span>
+       <input id="itemId" type="text" placeholder="Enter Item ID">
+      </div>
+      <div class="form-row">
+        <span>Start Time:</span>
+        <input id="t1Item" type="text" placeholder="YYYYMMDDHHMMSS (default: 1st of month at 000000)">
+        <span>End Time:</span>
+        <input id="t2Item" type="text" placeholder="YYYYMMDDHHMMSS (default: now)">
+      </div>
+      <button type="button" id="getItem">Get Item Details</button>
+    </div>
+
+    <div id="sessionDetails" class="content">
+      <h2>Get Session</h2>
+      Session ID: <input id="sessionId" type="text" placeholder="Enter Session ID"><br>
+      <button type="button" id="getSession">Get Session Details</button>
+    </div>
+
+    <!-- Results Section -->
+    <h2 id="resultsTitle" class="results">Results</h2>
+    <pre id="resultBox" class="results">Results will appear here...</pre>
+  </div>
+</body>
+</html>
