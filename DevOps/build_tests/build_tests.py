@@ -45,13 +45,12 @@ def send_email(msg, subject):
 # check and call email func
 def check_health():
 
-    time.sleep(30)
+    time.sleep(60)
     messages = '' 
     is_success= True
 
     # for each service + url
     for service_name, url in services.items():
-        print("in loop")
         try:
             response = requests.get(url)
 
