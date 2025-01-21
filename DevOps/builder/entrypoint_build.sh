@@ -1,5 +1,4 @@
 #!/bin/sh
-
 # read configuration file for compose file locations within the repository
 . DevOps/config/compose_targets.sh
 

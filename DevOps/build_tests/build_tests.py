@@ -13,9 +13,9 @@ services = {
 commiter = os.environ("EMAIL")
 
 # extract email data
-with open('/run/secrets/my_email', 'r') as file:
+with open('/conf/email', 'r') as file:
     email_user = file.read().strip()
-with open('/run/secrets/my_password', 'r') as file:
+with open('/conf/emailpass', 'r') as file:
     email_pass = file.read().strip()
 
 
