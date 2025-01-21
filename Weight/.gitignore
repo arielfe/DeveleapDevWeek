@@ -1,17 +1,82 @@
-version: '3.8'
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-services:
-  mysql:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      MYSQL_ROOT_PASSWORD: root123
-    volumes:
-      - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
+# Virtual Environment
+venv/
+ENV/
+env/
+myenv/
+.env
+.venv
+env.bak/
+venv.bak/
 
-volumes:
-  mysql_data:
-    driver: localmyenv/
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# IDE - PyCharm
+.idea/
+*.iml
+*.iws
+.idea_modules/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Logs
+*.log
+log/
+logs/
+
+# Database
+*.db
+*.sqlite3
+*.sqlite
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+config.ini
+*.conf
+*.cfg
+credentials.json
+secrets.json
