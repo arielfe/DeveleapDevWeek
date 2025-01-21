@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mysql_weight:
+    build: 
+      context: .
+      dockerfile: mysql.Dockerfile
+    volumes:
+      - mysql_weight_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    container_name: weight_mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  flask_app:
+    build: 
+      context: .
+      dockerfile: flask.Dockerfile
+    volumes:
+      - ./app:/app
+      - ./app/in:/app/in
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql_weight:
+        condition: service_healthy
+    container_name: weight_flask
+
+volumes:
+  mysql_weight_data:
