@@ -1,0 +1,9 @@
+#!/bin/sh
+export BILLING_TEST_COMPOSE_FOLDER=Billing
+export BILLING_TEST_COMPOSE_FILE=compose_test.yaml
+export BILLING_DEPLOY_COMPOSE_FOLDER=Billing
+export BILLING_DEPLOY_COMPOSE_FILE=compose.yaml
+export BILLING_TEST_COMPOSE_FOLDER=Weight
+export BILLING_TEST_COMPOSE_FILE=compose_test.yaml
+export BILLING_DEPLOY_COMPOSE_FOLDER=Weight
+export BILLING_DEPLOY_COMPOSE_FILE=compose.yaml
