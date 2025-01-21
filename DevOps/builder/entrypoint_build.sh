@@ -14,21 +14,20 @@ REPO_ROOT=$(pwd)
 
 # execute each docker compose testing file
 cd $BILLING_TEST_COMPOSE_FOLDER
-pwd
-docker compose -f $BILLING_TEST_COMPOSE_FILE up
-echo "docker compose -f $BILLING_TEST_COMPOSE_FILE up"
+docker compose -f $BILLING_TEST_COMPOSE_FILE up -d
 cd $REPO_ROOT
-#cd $WEIGHT_TEST_COMPOSE_FOLDER
-#docker compose -f $WEIGHT_TEST_COMPOSE_FILE up
+cd $WEIGHT_TEST_COMPOSE_FOLDER
+docker compose -f $WEIGHT_TEST_COMPOSE_FILE up -d
 
 # run build test script. the script will also return mail to the committer
 cd $REPO_ROOT
 cd DevOps/build_tests
-python build_test.py
+python build_tests.py
 
 # if this is main branch and tests successful, need to run deployment
 DEPLOY="NO"
-if [[ $? -eq 0 && $MAIN_BRANCH -eq "YES" ]]; then
+echo $MAIN_BRANCH
+if [[ $? == 0 && $MAIN_BRANCH == "YES" ]]; then
    DEPLOY="YES"
 fi
 cd $REPO_ROOT
@@ -44,10 +43,10 @@ cd $REPO_ROOT
 # deploy if needded
 if [[ $DEPLOY == "YES" ]]; then
    cd $BILLING_DEPLOY_COMPOSE_FOLDER
-   docker compose -f  $BILLING_DEPLOY_COMPOSE_FILE up -d
+   docker compose -f $BILLING_DEPLOY_COMPOSE_FILE up -d 
    cd $REPO_ROOT
    cd $WEIGHT_DEPLOY_COMPOSE_FOLDER
-   docker compose -f $WEIGHT_DEPLOY_COMPOSE_FILE -d
+   docker compose -f $WEIGHT_DEPLOY_COMPOSE_FILE up -d
    cd $REPO_ROOT
    # run post deploy tests
    cd DevOps/build_tests

@@ -10,7 +10,7 @@ services = {
     "frontend billing":"http://localhost:8084/health"
     }
 
-commiter = os.environ("EMAIL")
+commiter = os.environ.get("EMAIL")
 
 # extract email data
 with open('/conf/email', 'r') as file:
