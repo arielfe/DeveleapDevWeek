@@ -1,11 +1,13 @@
 import pytest
-import requests
-import os
 from app import app
 from datetime import datetime
+from unittest.mock import patch
 
-BASE_URL = "http://localhost:5000"  # Updated port to match the Flask app.
-
+@pytest.fixture
+def client():
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        yield client
 
 def validate_date(date_string):
     try:
@@ -14,22 +16,25 @@ def validate_date(date_string):
     except ValueError:
         return False
 
-
-
-
-
-
-
-
-def test_get_unknown_success():
-    response = requests.get(f"{BASE_URL}/unknown")
+def test_get_unknown_success(client):
+    response = client.get("/unknown")
     assert response.status_code == 200
-    assert isinstance(response.json(), list)  # The response should be a list
+    response_text = response.data.decode("utf-8")  # Decode the response text
+    assert response_text.startswith("[") and response_text.endswith("]")  # Ensure it's a list-like format
 
-def test_get_weight_success():
-    response = requests.get(f"{BASE_URL}/weight?from=20250101000000&to=20250120000000&filter=in,out,none")
+    # Parse the string as a list of strings
+    try:
+        unknown_containers = eval(response_text)  # Convert the text to a Python list
+        assert isinstance(unknown_containers, list)  # Validate it's a list
+        for item in unknown_containers:
+            assert isinstance(item, str)  # Ensure all items are strings
+    except Exception as e:
+        assert False, f"Parsing response failed: {e}"
+
+def test_get_weight_success(client):
+    response = client.get("/weight?from=20250101000000&to=20250120000000&filter=in,out,none")
     assert response.status_code in [200, 201]  # Accept both 200 and 201
-    data = response.json()
+    data = response.get_json()
     assert isinstance(data, list)  # The response should be a list
     if data:  # If there is data, validate structure
         assert "id" in data[0]
@@ -39,20 +44,18 @@ def test_get_weight_success():
         assert "produce" in data[0]
         assert "containers" in data[0]
 
-def test_get_item_success():
-    item_id = "c1001" 
-    response = requests.get(f"{BASE_URL}/item/{item_id}")
+def test_get_item_success(client):
+    item_id = "c1001"
+    response = client.get(f"/item/{item_id}")
     assert response.status_code == 200
-    data = response.json()
+    data = response.get_json()
     assert "id" in data
     assert data["id"] == item_id
     assert "tara" in data
     assert "sessions" in data
     assert isinstance(data["sessions"], list)
 
-
-
-def test_post_weight_success():
+def test_post_weight_success(client):
     payload = {
         "direction": "in",
         "truck": "12345",
@@ -62,18 +65,17 @@ def test_post_weight_success():
         "force": "false",
         "produce": "orange"
     }
-    response = requests.post(f"{BASE_URL}/weight", json=payload)
-    assert response.status_code == 201  # עדכון ל-201 במקום 200
-    assert "id" in response.json()
-    assert response.json()["truck"] == "12345"
+    response = client.post("/weight", json=payload)
+    assert response.status_code == 201
+    assert "id" in response.get_json()
+    assert response.get_json()["truck"] == "12345"
 
-
-def test_get_session_success():
+def test_get_session_success(client):
     session_id = "abc123"  # Replace with a valid session ID from your setup
-    response = requests.get(f"{BASE_URL}/session/{session_id}")
-    
+    response = client.get(f"/session/{session_id}")
+
     if response.status_code == 200:
-        data = response.json()
+        data = response.get_json()
         assert "id" in data
         assert data["id"] == session_id
         assert "truck" in data
@@ -81,14 +83,14 @@ def test_get_session_success():
         assert "neto" in data
     else:
         print(f"Session ID {session_id} not found, received status code {response.status_code}")
-        assert response.status_code == 404  # במקרה שאין סשן, יש להחזיר 404
+        assert response.status_code == 404
 
-def test_get_item_not_found():
+def test_get_item_not_found(client):
     item_id = "nonexistent_id"
-    response = requests.get(f"{BASE_URL}/item/{item_id}")
+    response = client.get(f"/item/{item_id}")
     assert response.status_code == 404
 
-def test_post_weight_invalid_direction():
+def test_post_weight_invalid_direction(client):
     payload = {
         "direction": "invalid",  # invalid direction
         "truck": "12345",
@@ -98,10 +100,10 @@ def test_post_weight_invalid_direction():
         "force": "false",
         "produce": "orange"
     }
-    response = requests.post(f"{BASE_URL}/weight", json=payload)
+    response = client.post("/weight", json=payload)
     assert response.status_code == 400
 
-def test_post_weight_force():
+def test_post_weight_force(client):
     payload = {
         "direction": "in",
         "truck": "12345",
@@ -111,13 +113,12 @@ def test_post_weight_force():
         "force": "true",
         "produce": "orange"
     }
-    response = requests.post(f"{BASE_URL}/weight", json=payload)
-    assert response.status_code == 201 
-    assert "id" in response.json()
-    assert response.json()["truck"] == "12345"
+    response = client.post("/weight", json=payload)
+    assert response.status_code == 201
+    assert "id" in response.get_json()
+    assert response.get_json()["truck"] == "12345"
 
-
-def test_post_weight_missing_parameters():
+def test_post_weight_missing_parameters(client):
     payload = {
         "direction": "in",
         "truck": "12345",
@@ -126,43 +127,45 @@ def test_post_weight_missing_parameters():
         "force": "false",
         "produce": "orange"
     }
-    response = requests.post(f"{BASE_URL}/weight", json=payload)
-    assert response.status_code == 400  
+    response = client.post("/weight", json=payload)
+    assert response.status_code == 400
 
-
-def test_post_weight_invalid_unit():
+def test_post_weight_invalid_unit(client):
     payload = {
         "direction": "in",
         "truck": "12345",
         "containers": "cont1,cont2",
         "weight": 1000,
-        "unit": "g", 
+        "unit": "g",
         "force": "false",
         "produce": "orange"
     }
-    response = requests.post(f"{BASE_URL}/weight", json=payload)
-    assert response.status_code == 400  
+    response = client.post("/weight", json=payload)
+    assert response.status_code == 400
 
-
-def test_post_batch_weight_invalid_file():
+def test_post_batch_weight_invalid_file(client):
     payload = {'file': 'invalid_file.csv'}
-    response = requests.post(f"{BASE_URL}/batch-weight", files=payload)
-    assert response.status_code == 400  
+    response = client.post("/batch-weight", data=payload)
+    assert response.status_code == 400
 
+def test_get_health_failure(client):
+    # Mock get_db_connection in the app module
+    with patch('app.get_db_connection') as mock_get_db_connection:
+        # Simulate a database connection error
+        mock_get_db_connection.side_effect = Exception("Database connection failed")
 
+        # Perform the test
+        response = client.get("/health")
 
-#def test_get_health_failure():
-    #response = requests.get(f"{BASE_URL}/health")
-    #assert response.status_code == 500
-    #assert response.text == "Failure"
+        # Validate the response
+        assert response.status_code == 500
+        json_response = response.get_json()
+        assert json_response["status"] == "Failure"
+        assert "Database connection failed" in json_response["message"]
 
-
-
- #def test_get_health_success():
-   #response = requests.get(f"{BASE_URL}/health")
-   #assert response.status_code == 200
-   #assert response.text == "OK"
-
-
-
-
+def test_get_health_success(client):
+    response = client.get("/health")
+    assert response.status_code == 200  # Status should be 200
+    assert response.is_json, "Response is not JSON"  # Ensure response is JSON
+    data = response.get_json()
+    assert data == {"status": "200 OK"}, f"Unexpected response: {data}"
