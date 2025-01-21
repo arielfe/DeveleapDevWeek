@@ -53,7 +53,6 @@
           if (typeof response === 'object') {
             for (const [key, value] of Object.entries(response)) {
               if (Array.isArray(value)) {
-                // Для массива объектов
                 resultText += `${key}: ${JSON.stringify(value, null, 2)}\n`;
               } else {
                 resultText += `${key}: ${value}\n`;
@@ -67,13 +66,13 @@
         .fail(function(xhr) {
           try {
             const errorResponse = JSON.parse(xhr.responseText);
-            let resultText = 'Error:\n';
+            let resultText = '';
             for (const [key, value] of Object.entries(errorResponse)) {
               resultText += `${key}: ${value}\n`;
             }
             $("#resultBox").text(resultText.trim());
           } catch (e) {
-            $("#resultBox").text('Error: ' + xhr.responseText);
+            $("#resultBox").text(xhr.responseText);
           }
         });
     }
@@ -102,13 +101,13 @@
         .fail(function(xhr) {
           try {
             const errorResponse = JSON.parse(xhr.responseText);
-            let resultText = 'Error:\n';
+            let resultText = '';
             for (const [key, value] of Object.entries(errorResponse)) {
               resultText += `${key}: ${value}\n`;
             }
             $("#resultBox").text(resultText.trim());
           } catch (e) {
-            $("#resultBox").text('Error: ' + xhr.responseText);
+            $("#resultBox").text(xhr.responseText);
           }
         });
     }
@@ -123,7 +122,8 @@
 
       $("#sendBatchWeight").click(function () {
         const fileName = $("#batchFileName").val();
-        sendPostRequest(`/batch-weight?file=${fileName}`, {});
+        const queryString = fileName ? `?file=${fileName}` : ""; 
+        sendPostRequest(`/batch-weight${queryString}`, {});
       });
 
       $("#getHealth").click(function () {
