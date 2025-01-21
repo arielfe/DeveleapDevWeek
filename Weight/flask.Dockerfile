@@ -20,7 +20,7 @@ COPY app/ .
 # Set environment variables
 ENV FLASK_APP=app.py
 ENV DB_HOST=mysql_weight
-ENV DB_USER=nati
+ENV DB_USER=user_weight
 ENV DB_PASSWORD=bashisthebest
 ENV DB_NAME=weight
 ENV DB_PORT=3306

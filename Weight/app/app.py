@@ -176,9 +176,10 @@ def weight_post():
     - truck: Truck identifier (required for 'in'/'out' directions).
     - weight: Weight value.
     - unit: Weight unit ('kg'/'lbs').
+    - containers: Comma-separated list of container IDs. (on 'in'/'none' directions).
 
     Optional Parameters:
-    - containers: Comma-separated list of container IDs.
+    
     - force: Override validation checks if true.
     - produce: Type of produce being transported.
 
@@ -231,6 +232,12 @@ def weight_post():
         return jsonify({
             "status": "Failure",
             "message": "Truck ID is required for 'in' or 'out' directions"
+        }), 400
+
+    if direction in ('in', 'none') and not containers:
+        return jsonify({
+            "status": "Failure",
+            "message": "Container ID is required for 'in' or 'none' directions"
         }), 400
 
     # Validate weight
