@@ -1,0 +1,42 @@
+version: '3.9'
+
+# path to the billing and weight docker-compose files
+include:
+  - ../Weight/docker-compose.yml
+  - ../Billing/docker-compose.yaml
+
+networks:
+  app_network:
+    driver: bridge
+
+
+# define the email + pass for later use
+secrets:
+  my_email:
+    file: /conf/email
+  my_password:
+    file: /conf/emailpass
+
+services:
+
+  # devops service app
+  app-service:
+    build: .
+    container_name: app-service
+    networks:
+      - app_network
+    depends_on:
+      # the name of the service as weight-team call it from thier docker compose
+      - flask_app
+      - billing-server
+    volumes:
+      - shared-socket:/socket
+
+    # for email sending
+    secrets:
+      - my_email
+      - my_password
+
+# use the socket for services to talk to each other
+# volumes:
+#   shared-socket:
