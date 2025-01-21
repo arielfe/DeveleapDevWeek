@@ -5,6 +5,7 @@ import PostProvider from "./components/PostProvider";
 import PostTruck from "./components/PostTruck";
 import UpdateTruck from "./components/UpdateTruck";
 import UploadRates from "./components/UploadRates";
+import DownloadRates from "./components/DownloadRates";
 function App() {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -17,6 +18,7 @@ function App() {
         <PostTruck />
         <UpdateTruck />
         <UploadRates />
+        <DownloadRates />
       </div>
     </div>
   );
