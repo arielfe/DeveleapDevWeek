@@ -2,6 +2,7 @@ import smtplib
 import requests
 import sys
 import os
+import time
 from email.message import EmailMessage
 
 # services
@@ -44,6 +45,7 @@ def send_email(msg, subject):
 # check and call email func
 def check_health():
 
+    time.sleep(30)
     messages = '' 
     is_success= True
 
