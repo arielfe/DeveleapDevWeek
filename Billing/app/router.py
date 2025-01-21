@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request, send_file
-from app.controller import db,update_provider_controller,add_provider,health_check_controller,add_truck,update_truck_provider,upload_rates_from_excel, Provider  # Import controllers
+from app.controller import db,update_provider_controller,add_provider,health_check_controller,add_truck,update_truck_provider,upload_rates_from_excel, Provider, get_truck_details  # Import controllers
 import os
+from datetime import datetime
+
 # Create a blueprint for provider-related routes
 provider_routes = Blueprint("provider_routes", __name__)
 
@@ -88,6 +90,17 @@ def get_rate():
     except FileNotFoundError:
         return jsonify({"error": "Excel file not found"}), 404
 
+@provider_routes.route('/truck/<id>', methods=['GET'])
+def get_truck(id):
+    from_param = request.args.get('from') or datetime.now().replace(day=1).strftime('%Y%m%d000000')
+    to_param = request.args.get('to') or datetime.now().strftime('%Y%m%d%H%M%S')
+    result = get_truck_details(id, from_param, to_param)
+    if result is None:
+        return jsonify({"error": "Truck not found"}), 404
+    if result == "error_fetching_data":
+        return jsonify({"error": "Failed to fetch truck data"}), 500
+    return jsonify(result), 200
+    # return jsonify({"message": "Success"}), 200 
 
 
 

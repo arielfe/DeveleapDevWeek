@@ -3,6 +3,9 @@ from sqlalchemy import create_engine
 from app import db  # Import the database instance
 from openpyxl import load_workbook
 from app import create_app  # Import the factory function
+from datetime import datetime
+import http.client
+import json
 
 # Define a Provider model
 class Provider(db.Model):
@@ -109,6 +112,7 @@ def update_truck_provider(truck_id, new_provider_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
 def upload_rates_from_excel(file_path):
     try:
         # Load the workbook and the active sheet using openpyxl
@@ -145,3 +149,28 @@ def upload_rates_from_excel(file_path):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+    except Exception:
+        return "error_fetching_data"  # Generic error if connection fails
+
+def get_truck_details(truck_id, from_time_str, to_time_str):    
+    host = "host.docker.internal"
+    port = 5000
+    endpoint = f"/item/{truck_id}?from={from_time_str}&to={to_time_str}"
+    print(f"Requesting truck data from weight service: {host}:{port}{endpoint}")
+    try:
+        conn = http.client.HTTPConnection(host, port)
+        conn.request("GET", endpoint)
+        response = conn.getresponse()
+
+        if response.status == 404:
+            return None  # Truck not found
+        elif response.status != 200:
+            return "error_fetching_data"  # Unexpected error from weight service
+        data = json.loads(response.read().decode("utf-8"))
+        conn.close()
+
+        return data # Return truck data as received from weight service
+        
+    except Exception:
+        return "error_fetching_data"  # Generic error if connection fails

@@ -4,7 +4,7 @@ services:
   billing-server:
     build: .  # Build the image from the Dockerfile in the current directory
     ports:
-      - "5001:5000"  # Map port 5000 in the container to port 5001 on the host
+      - "5002:5001"  # Map port 5001 in the container to port 5002 on the host
     depends_on:
       - db  # Ensure the database service starts before this service
     environment:
@@ -24,7 +24,7 @@ services:
       MYSQL_ROOT_PASSWORD: adminpass  # Root password for MySQL
       MYSQL_DATABASE: billdb  # Initial database to create
     ports:
-      - "3306:3306"  # Expose MySQL's port
+      - "3307:3306"  # Expose MySQL's port
     volumes:
       - mysql_data:/var/lib/mysql  # Persistent data storage for MySQL
 
