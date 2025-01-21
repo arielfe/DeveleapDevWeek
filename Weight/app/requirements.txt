@@ -1,2 +1,7 @@
 mysql-connector-python==8.0.33
 flask==3.1.0
+# REQUIREMNTS FOR TESTING
+pytest==8.0.1
+flask==3.0.2
+pytest-mock==3.12.0
+werkzeug==3.0.1
