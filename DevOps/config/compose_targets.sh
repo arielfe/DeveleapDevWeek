@@ -1,9 +1,21 @@
 #!/bin/sh
-export BILLING_TEST_COMPOSE_FOLDER=Billing
-export BILLING_TEST_COMPOSE_FILE=docker-compose.yaml
-export BILLING_DEPLOY_COMPOSE_FOLDER=Billing
-export BILLING_DEPLOY_COMPOSE_FILE=compose.yaml
-export WEIGHT_TEST_COMPOSE_FOLDER=DevOps
-export WEIGHT_TEST_COMPOSE_FILE=compose.yaml
-export WEIGHT_DEPLOY_COMPOSE_FOLDER=Weight
-export WEIGHT_DEPLOY_COMPOSE_FILE=compose.yaml
+#export BILLING_TEST_COMPOSE_FOLDER=Billing
+#export BILLING_TEST_COMPOSE_FILE=docker-compose.yaml
+#export BILLING_DEPLOY_COMPOSE_FOLDER=Billing
+#export BILLING_DEPLOY_COMPOSE_FILE=compose.yaml
+#export WEIGHT_TEST_COMPOSE_FOLDER=Weight
+#export WEIGHT_TEST_COMPOSE_FILE=compose.yaml
+#export WEIGHT_DEPLOY_COMPOSE_FOLDER=Weight
+#export WEIGHT_DEPLOY_COMPOSE_FILE=compose.yaml
+
+
+
+export BILLING_TEST_COMPOSE_FOLDER=DevOps/mock
+export BILLING_TEST_COMPOSE_FILE=compose_btest.yaml
+export BILLING_DEPLOY_COMPOSE_FOLDER=DevOps/mock
+export BILLING_DEPLOY_COMPOSE_FILE=compose_bprod.yaml
+export WEIGHT_TEST_COMPOSE_FOLDER=DevOps/mock
+export WEIGHT_TEST_COMPOSE_FILE=compose_wtest.yaml
+export WEIGHT_DEPLOY_COMPOSE_FOLDER=DevOps/mock
+export WEIGHT_DEPLOY_COMPOSE_FILE=compose_wprod.yaml
+

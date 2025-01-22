@@ -1,0 +1,8 @@
+name: wt
+
+services:
+  foo:
+    build: .
+    ports:
+      - "5555:5000"
+    attach: false

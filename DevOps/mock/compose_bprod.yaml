@@ -1,0 +1,8 @@
+name: bp
+
+services:
+  foo:
+    build: .
+    ports:
+      - "8083:5000"
+    attach: false
