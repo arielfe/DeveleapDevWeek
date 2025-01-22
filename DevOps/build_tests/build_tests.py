@@ -46,7 +46,7 @@ def send_email(msg, subject):
 # check and call email func
 def check_health():
 
-    time.sleep(60)
+    time.sleep(2)
     messages = '' 
     is_success= True
 
