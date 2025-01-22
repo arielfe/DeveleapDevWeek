@@ -36,6 +36,7 @@ def github_webhook():
         "-e", f"MAIN_BRANCH={MAIN}",
         "-e", f"COMMIT={commit}",
         "-e", f"EMAIL={pusher_email}",
+        "--net", "host",
         "build" # Image name
     ]
 

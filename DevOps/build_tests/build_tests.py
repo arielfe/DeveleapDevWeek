@@ -2,32 +2,41 @@ import smtplib
 import requests
 import sys
 import os
+import time
 import yaml
+from email.message import EmailMessage
 
-
-path = '/home/ez/Desktop/Bootcamp/project_gsh/DeveleapDevWeek/DevOps/config/healthchek_test.conf.yml'
+path = '../config/healthchek_test.conf.yml'
 
 # services
-
 services = yaml.safe_load(open(path))
 services = dict(services)
 
-commiter = os.environ("EMAIL")
+commiter = os.environ.get("EMAIL")
 
 # extract email data
-with open('/run/secrets/my_email', 'r') as file:
+with open('/conf/email', 'r') as file:
     email_user = file.read().strip()
-with open('/run/secrets/my_password', 'r') as file:
+with open('/conf/emailpass', 'r') as file:
     email_pass = file.read().strip()
 
 
 #  email func
-def send_email(msg):
+def send_email(msg, subject):
     try:
+        message = EmailMessage()
+        message.set_content(msg)
+        message["Subject"] = subject
+        message["From"] = email_user
+        message["To"] = commiter
+        #message = 'Subject: {}\n\n{}'.format(subject, msg)
         s = smtplib.SMTP('smtp.gmail.com', 587)
         s.starttls()
         s.login(email_user, email_pass)
-        s.sendmail(email_user, commiter, msg)
+        #print("msg")
+        #print(msg)
+        #s.sendmail(email_user, commiter, msg)
+        s.send_message(message)
         s.quit()
     except Exception as e:
         print(f"Failed to send email: {e}")
@@ -36,6 +45,7 @@ def send_email(msg):
 # check and call email func
 def check_health():
 
+    time.sleep(2)
     messages = '' 
     is_success= True
 
@@ -60,12 +70,17 @@ def check_health():
                 
         # catch request error       
         except requests.exceptions.RequestException as e:
-            msg = f"[ERROR] Could not connect to {service_name}: {e}"
+            is_success = False
+            msg = f"[ERROR] Could not connect to {service_name}"
             print(msg)
             messages += f'{msg}\n'
 
     # sending email on both cases
-    send_email(messages)
+    if is_success:
+       subject = 'build success'
+    else:
+        subject = 'build failed'
+    send_email(messages, subject)
 
     # exit codes for success/faliure
     if is_success:

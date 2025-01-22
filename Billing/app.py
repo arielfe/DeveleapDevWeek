@@ -7,7 +7,7 @@ from db_init import initialize_database  # Database initialization function
 DB_USER = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
 DB_HOST = os.getenv("DB_HOST", "db")
-DB_NAME = os.getenv("DB_NAME", "billing_db")
+DB_NAME = os.getenv("DB_NAME", "billdb")
 
 if __name__ == "__main__":
     # Create the Flask app using the factory function
@@ -21,5 +21,4 @@ if __name__ == "__main__":
 
 
     # Start the Flask development server
-    app.run(host="0.0.0.0", port=5000, debug=True)
-
+    app.run(host="0.0.0.0", port=5001, debug=True)

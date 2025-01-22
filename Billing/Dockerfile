@@ -29,7 +29,7 @@ RUN chown -R flaskuser:flaskuser /app
 USER flaskuser
 
 # Expose the Flask app's port
-EXPOSE 5000
+EXPOSE 5001
 
 # Command to run the Flask application
 ENTRYPOINT ["python3", "app.py"]
