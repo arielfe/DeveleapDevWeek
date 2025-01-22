@@ -1,0 +1,20 @@
+﻿Server setup:
+
+	Install docker:
+sudo apt get install docker
+
+	Copy relevant files:
+scp [key] [user@host:path/to/source/file] [user@server:home/path]
+# copy builder_entrypoint_build.sh and Dockerfile_build from DevOps builder directory to server home
+# copy listener.py and Dockerfile_listener from DevOps listener directory to server home
+
+	Build the images:
+docker build -t listen -f Dockerfile_listen . 	# in server home
+docker build -t build -f Dockerfile_build . 	# in server home
+
+	Run the listener app:
+docker run --name listener -d -p 8081:5000 -v /home/ubuntu/conf:/conf -v /var/run/docker.sock:/var/run/docker.sock --restart always listen
+
+create named volumes for the apps:
+docker volume create -d local --opt type=none --opt o=bind --opt device=/home/ubuntu/app/weight/in weightin
+docker volume create -d local --opt type=none --opt o=bind --opt device=/home/ubuntu/app/billing/in billingin
