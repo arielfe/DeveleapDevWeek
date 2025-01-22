@@ -1,0 +1,226 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background: url("bkg.jpg") no-repeat center center fixed;
+  background-size: cover;
+  color: white;
+  position: relative;
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: -1;
+}
+
+.main {
+  width: 80vw;
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  border-radius: 15px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+}
+
+.navbar {
+  display: flex;
+  box-sizing: border-box;
+  background-color: rgba(51, 51, 51, 0.8);
+  padding: 10px 20px;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  border-radius: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.navbar a {
+  color: white;
+  padding: 10px 15px;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 5px;
+}
+
+.navbar a:hover {
+  background-color: #575757;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.shortcut-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.shortcut-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 15px 20px;
+  border-radius: 10px;
+  font-size: 1rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  width: 200px;
+}
+
+.shortcut-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+}
+
+.content {
+  display: none;
+  padding: 30px;
+  color: white;
+}
+
+.content.active {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; 
+  align-items: flex-start;
+}
+
+button, .btn {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:hover, .btn:hover {
+  background-color: #0056b3;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 20px;
+  /* background: rgba(255, 255, 255, 0.2); */
+  /* border-radius: 10px; */
+  /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); */
+  align-items: center; 
+  justify-content: space-between;
+  /* max-width: 70%;  */
+}
+
+.cards {
+  display: flex;
+  flex-direction: row;
+}
+
+.left, .right {
+  min-width: 500px;
+}
+
+.cards .form-row {
+  margin: 10px 0 10px 0;;
+}
+
+.form-row {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-row span {
+  white-space: nowrap;
+  width: 80px;
+}
+
+.radio-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; 
+  width: 100%; 
+  gap: 5%; 
+}
+
+.radio-group {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  /* margin-right: 5%; */
+}
+
+/* .radio-group span {
+  font-weight: 500;
+} */
+
+#itemDetails span, #getWeight span {
+  width: 110px;
+}
+
+#itemDetails input, #getWeight input {
+  width: 26vw;
+}
+
+input[type="text"], input[type="number"], select {
+  /* flex: 1; */
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  margin-right: 50px;
+  width: 25vw;
+}
+
+::placeholder {
+  color: white;
+  opacity: 0.7;
+}
+
+input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+textarea {
+  resize: none;
+}
+
+#resultBox {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 15px;
+  white-space: pre-wrap;
+  margin-top: 20px;
+  border-radius: 10px;
+  color: white;
+  font-size: 1rem;
+}
