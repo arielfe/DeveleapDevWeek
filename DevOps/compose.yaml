@@ -8,4 +8,4 @@ services:
     volumes:
       - type: bind
         source: ./health
-        target: /usr/share/nginx/html/health
+        target: /usr/share/nginx/html/health.html
