@@ -3,6 +3,8 @@ version: '3.9'
 services:
   billing-server:
     build: .  # Build the image from the Dockerfile in the current directory
+    ports:
+      - "5000:5000"  
     depends_on:
       - db  # Ensure the database service starts before this service
     environment:
