@@ -2,10 +2,7 @@ name: myapp
 
 services:
   foo:
-    image: nginx
+    build: .
     ports:
-      - "8085:80"
-    volumes:
-      - type: bind
-        source: ./health
-        target: /usr/share/nginx/html/health.html
+      - "8085:5000"
+    attach: false
