@@ -1,0 +1,7 @@
+name: myapp
+
+services:
+  foo:
+    image: nginx
+    ports:
+      - "8085:80"
