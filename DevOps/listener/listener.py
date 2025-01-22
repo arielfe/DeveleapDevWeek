@@ -22,7 +22,7 @@ def github_webhook():
         MAIN="YES"
     else: MAIN="NO"
 
-    # Extract commit ID and pusher email
+    # Extract commit ID (from the first commit) and pusher email
     commit = payload.get('commits', [{}])[0].get('id', None)
     if not commit:
         abort(400, "Commit ID not found")

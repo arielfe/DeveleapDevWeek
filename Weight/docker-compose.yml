@@ -7,8 +7,6 @@ services:
       dockerfile: mysql.Dockerfile
     volumes:
       - mysql_weight_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
     container_name: weight_mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
@@ -25,7 +23,7 @@ services:
       - ./app:/app
       - ./app/in:/app/in
     ports:
-      - "5000:5000"
+      - "8082:5000"
     depends_on:
       mysql_weight:
         condition: service_healthy
