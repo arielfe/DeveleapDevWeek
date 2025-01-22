@@ -2,41 +2,31 @@ import smtplib
 import requests
 import sys
 import os
-import time
-import yaml
-from email.message import EmailMessage
 
-path = '../config/healthchek_test.conf.yml'
 
 # services
-services = yaml.safe_load(open(path))
-services = dict(services)
+services = {
+    "backend-weight":"http://localhost:5555/health",
+    "backend-billing":"http://localhost:5000/health",
+    "frontend billing":"http://localhost:8084/health"
+    }
 
-commiter = os.environ.get("EMAIL")
+commiter = os.environ("EMAIL")
 
 # extract email data
-with open('/conf/email', 'r') as file:
+with open('/run/secrets/my_email', 'r') as file:
     email_user = file.read().strip()
-with open('/conf/emailpass', 'r') as file:
+with open('/run/secrets/my_password', 'r') as file:
     email_pass = file.read().strip()
 
 
 #  email func
-def send_email(msg, subject):
+def send_email(msg):
     try:
-        message = EmailMessage()
-        message.set_content(msg)
-        message["Subject"] = subject
-        message["From"] = email_user
-        message["To"] = commiter
-        #message = 'Subject: {}\n\n{}'.format(subject, msg)
         s = smtplib.SMTP('smtp.gmail.com', 587)
         s.starttls()
         s.login(email_user, email_pass)
-        #print("msg")
-        #print(msg)
-        #s.sendmail(email_user, commiter, msg)
-        s.send_message(message)
+        s.sendmail(email_user, commiter, msg)
         s.quit()
     except Exception as e:
         print(f"Failed to send email: {e}")
@@ -45,7 +35,6 @@ def send_email(msg, subject):
 # check and call email func
 def check_health():
 
-    time.sleep(2)
     messages = '' 
     is_success= True
 
@@ -70,17 +59,12 @@ def check_health():
                 
         # catch request error       
         except requests.exceptions.RequestException as e:
-            is_success = False
-            msg = f"[ERROR] Could not connect to {service_name}"
+            msg = f"[ERROR] Could not connect to {service_name}: {e}"
             print(msg)
             messages += f'{msg}\n'
 
     # sending email on both cases
-    if is_success:
-       subject = 'build success'
-    else:
-        subject = 'build failed'
-    send_email(messages, subject)
+    send_email(messages)
 
     # exit codes for success/faliure
     if is_success:
