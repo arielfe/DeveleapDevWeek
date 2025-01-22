@@ -15,4 +15,6 @@ docker build -t build -f Dockerfile_build . 	# in server home
 	Run the listener app:
 docker run --name listener -d -p 8081:5000 -v /home/ubuntu/conf:/conf -v /var/run/docker.sock:/var/run/docker.sock --restart always listen
 
-
+create named volumes for the apps:
+docker volume create -d local --opt type=none --opt o=bind --opt device=/home/ubuntu/app/weight/in weightin
+docker volume create -d local --opt type=none --opt o=bind --opt device=/home/ubuntu/app/billing/in billingin
