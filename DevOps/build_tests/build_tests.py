@@ -8,7 +8,7 @@ from email.message import EmailMessage
 
 # services
 services = {
-    "backend-weight":"http://127.0.0.1:5555/health",
+    "backend-weight":"http://127.0.0.1:8085/health",
     "backend-billing":"http://127.0.0.1:5000/health",
     "frontend billing":"http://127.0.0.1:8084/health"
     }
