@@ -1,5 +1,4 @@
 
 backend-weight: 'http://localhost:5555/health'
 backend-billing: 'http://localhost:5000/health'
-frontend-billing: 'http://localhost:8084/health'
 
