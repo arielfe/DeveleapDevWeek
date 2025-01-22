@@ -2,13 +2,15 @@ import smtplib
 import requests
 import sys
 import os
+import yaml
+
+
+path = '/home/ez/Desktop/Bootcamp/project_gsh/DeveleapDevWeek/DevOps/config/healthchek_test.conf.yml'
 
 # services
-services = {
-    "backend-weight":"http://localhost:5555/health",
-    "backend-billing":"http://localhost:5000/health",
-    "frontend billing":"http://localhost:8084/health"
-    }
+
+services = yaml.safe_load(open(path))
+services = dict(services)
 
 commiter = os.environ("EMAIL")
 
