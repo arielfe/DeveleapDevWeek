@@ -21,7 +21,7 @@ services:
       - ./app:/app
       - ./app/in:/app/in
     ports:
-      - "8085:5000"
+      - "5555:5000"
     depends_on:
       mysql_weight:
         condition: service_healthy
