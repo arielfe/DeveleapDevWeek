@@ -4,6 +4,7 @@ import time  # For retry logic with sleep
 from sqlalchemy import text  # For handling raw SQL queries
 from sqlalchemy.exc import OperationalError  # For catching database connection errors
 from flask_sqlalchemy import SQLAlchemy  # For SQLAlchemy integration with Flask
+
 def initialize_database(app, db, dump_file="billingdb.sql", max_retries=5):
     retry_count = 0
     db_name = os.getenv("DB_NAME", "billdb")  # Default to 'billdb'

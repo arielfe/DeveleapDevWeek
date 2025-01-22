@@ -1,0 +1,8 @@
+name: wp
+
+services:
+  foo:
+    build: .
+    ports:
+      - "8085:5000"
+    attach: false
