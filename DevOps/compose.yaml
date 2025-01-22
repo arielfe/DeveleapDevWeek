@@ -5,3 +5,7 @@ services:
     image: nginx
     ports:
       - "8085:80"
+    volumes:
+      - type: bind
+        source: ./health
+        target: /usr/share/nginx/html/health
