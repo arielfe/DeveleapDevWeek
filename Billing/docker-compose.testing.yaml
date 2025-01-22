@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  billing-server:
+    build: .  # Build the image from the Dockerfile in the current directory
+    ports:
+      - "5000:5000"  
+    depends_on:
+      - db  # Ensure the database service starts before this service
+    environment:
+      - DB_USER=root
+      - DB_PASSWORD=adminpass
+      - DB_HOST=db  # Reference the database service name
+      - DB_NAME=billdb
+      - PYTHONPATH=.  # Set PYTHONPATH to the project root
+    restart: always  # Automatically restart if the service stops
+    volumes:
+      - billingin:/app/in  # Use a named volume for the "in" folder
+
+  db:
+    image: mysql:5.7  # Use the MySQL 5.7 image
+    restart: always  # Restart the database if it stops
+    environment:
+      MYSQL_ROOT_PASSWORD: adminpass  # Root password for MySQL
+      MYSQL_DATABASE: billdb  # Initial database to create
+    volumes:
+      - mysql_data:/var/lib/mysql  # Persistent data storage for MySQL
+    # Do not expose the MySQL port to the host
+
+volumes:
+  mysql_data:  # Named volume for MySQL data persistence
+  billingin:
+    external: true  # Define the "billingin" volume as external
